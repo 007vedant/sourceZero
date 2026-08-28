@@ -1,0 +1,15 @@
+{
+  "name": "@sourcezero/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "sourcezero": "./dist/bin.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@sourcezero/engine": "workspace:*",
+    "commander": "^14.0.0"
+  }
+}

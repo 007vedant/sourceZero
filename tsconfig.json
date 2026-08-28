@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/engine" },
+    { "path": "packages/providers" },
+    { "path": "packages/presentation" },
+    { "path": "packages/exports" },
+    { "path": "packages/evaluation" },
+    { "path": "apps/cli" }
+  ]
+}
