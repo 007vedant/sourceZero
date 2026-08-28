@@ -4,20 +4,20 @@
 
 Read these files in order before making substantive changes:
 
-1. [product-requirement-doc.md](product-requirement-doc.md) for product requirements and non-goals.
-2. [architecture.md](architecture.md) for system boundaries and technical decisions.
-3. [milestones.md](milestones.md) for current status, implementation order, and completion gates.
+1. [product-requirement-doc.md](docs/product-requirement-doc.md) for product requirements and non-goals.
+2. [architecture.md](docs/architecture.md) for system boundaries and technical decisions.
+3. [milestones.md](docs/milestones.md) for current status, implementation order, and completion gates.
 
 The PRD is authoritative for product behavior. Architecture is authoritative for dependency direction and integrity boundaries. Milestones are authoritative for implementation sequence and progress.
 
 ## Milestone workflow
 
 - Before beginning implementation, locate the milestone that contains the requested work.
-- If the user does not name a scope, pick up the milestone marked `Next` in [milestones.md](milestones.md). Do not select work from memory or invent an untracked milestone.
+- If the user does not name a scope, pick up the milestone marked `Next` in [milestones.md](docs/milestones.md). Do not select work from memory or invent an untracked milestone.
 - Change the selected milestone to `In progress` before substantive implementation and update the file's `Current milestone` field. At most one milestone may be in progress.
 - Keep changes within the current milestone unless the user explicitly requests broader work or a prerequisite must be corrected. Record prerequisite or scope changes in the milestone file.
 - A milestone is complete only when all its deliverables and completion gates are satisfied. Passing a subset of tests or exhausting available time is not completion.
-- After the work is done, always update [milestones.md](milestones.md): check completed items, mark the milestone `Complete`, record its completion date and verification evidence, update total progress, and promote the first dependency-satisfied `Pending` milestone to `Next`.
+- After the work is done, always update [milestones.md](docs/milestones.md): check completed items, mark the milestone `Complete`, record its completion date and verification evidence, update total progress, and promote the first dependency-satisfied `Pending` milestone to `Next`.
 - After completing a milestone, pick up subsequent project work from the newly marked `Next` milestone. Do not silently begin it when the current user request ends at the completed milestone.
 - If work is blocked, mark the milestone `Blocked` only with a concrete reason and retain unchecked completion gates. Never mark blocked work complete.
 - Documentation-only maintenance that does not satisfy a milestone should update relevant checklist wording or evidence but must not advance milestone status.
