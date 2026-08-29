@@ -18,6 +18,7 @@ The PRD is authoritative for product behavior. Architecture is authoritative for
 - Keep changes within the current milestone unless the user explicitly requests broader work or a prerequisite must be corrected. Record prerequisite or scope changes in the milestone file.
 - A milestone is complete only when all its deliverables and completion gates are satisfied. Passing a subset of tests or exhausting available time is not completion.
 - After the work is done, always update [milestones.md](docs/milestones.md): check completed items, mark the milestone `Complete`, record its completion date and verification evidence, update total progress, and promote the first dependency-satisfied `Pending` milestone to `Next`.
+- Whenever a milestone is completed, the final handoff to the user must include an ordered **Code review flow**. This is a guided reading path, not an alphabetical changed-file list: start with the public entry point or contract, then follow control flow through application services, harness orchestration, domain rules, persistence or providers, presentation, and tests as applicable. Include only material files, give one short reason to review each file, and explain where the reader should go next.
 - After completing a milestone, pick up subsequent project work from the newly marked `Next` milestone. Do not silently begin it when the current user request ends at the completed milestone.
 - If work is blocked, mark the milestone `Blocked` only with a concrete reason and retain unchecked completion gates. Never mark blocked work complete.
 - Documentation-only maintenance that does not satisfy a milestone should update relevant checklist wording or evidence but must not advance milestone status.
@@ -51,6 +52,7 @@ The PRD is authoritative for product behavior. Architecture is authoritative for
 - Resolve defaults in the component that owns the decision and persist the resolved investigation policy.
 - Prefer explicit dependencies and constructor or service-key injection over global singletons.
 - Keep functions and modules focused. Split by ownership and independent consumer needs, not arbitrary line counts.
+- Add concise JSDoc to every new source file and class, explaining its purpose without restating the code.
 - Comments explain contracts, invariants, security constraints, and non-obvious failure behavior; do not narrate obvious code.
 
 ## Events, persistence, and projections

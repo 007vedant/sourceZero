@@ -1,2 +1,3 @@
-// Domain contracts are introduced in M2. This module reserves the inward dependency boundary.
-export {};
+export * from './events.js';
+export * from './identifiers.js';
+export * from './redaction.js';

@@ -79,7 +79,7 @@ Use `harness` when referring specifically to these orchestration responsibilitie
 | -------------------------------- | ---------------------------------------------------------------------------------- |
 | Language and runtime             | TypeScript on Node.js, ESM                                                         |
 | Workspace                        | pnpm workspaces; add Turborepo only when task orchestration warrants it            |
-| Local database                   | SQLite in WAL mode                                                                 |
+| Local database                   | SQLite in WAL mode through Node.js `node:sqlite`                                   |
 | Database access                  | Drizzle for schema and migrations; explicit SQL for critical event transactions    |
 | Runtime validation               | Zod at configuration, model, tool, persistence, plugin, and wire boundaries        |
 | Terminal UI                      | React with Ink                                                                     |
@@ -269,6 +269,8 @@ SQLite is the initial local system of record. Conceptual tables include:
 - `artifacts`
 - optional query projections for sources, claims, evidence, and relationships
 - `schema_migrations`
+
+M2 selects the Node.js `node:sqlite` driver. It is available in the Node 22.5 runtime baseline, avoids a separately compiled native addon, and has a supported Drizzle adapter. Drizzle owns schema declarations and migration generation/application; the contiguous event append remains explicit SQL inside an immediate transaction.
 
 `investigation_events` uses a unique `(investigation_id, sequence)` constraint. An append transaction verifies the expected previous sequence, inserts one or more events, and updates investigation metadata atomically. Projection tables are rebuildable and never outrank the event log.
 
@@ -518,7 +520,6 @@ The local SQLite event format and exported JSON format are versioned independent
 The following choices will be made in the milestone that first needs them:
 
 - First model and search providers
-- Exact SQLite driver
 - Final local data-directory convention on each operating system
 - Retention policy for raw retrieved content
 - Confidence vocabulary and calibration representation

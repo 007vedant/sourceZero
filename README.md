@@ -4,17 +4,17 @@
 
 SourceZero is an AI-powered claim-provenance investigator. Its eventual product will let a user confirm one precise claim, investigate its lineage across public webpages, and inspect an evidence-backed provenance graph showing likely origins, independent support, derivative repetition, and changes in wording over time. It is designed for transparent investigation rather than binary fact-checking.
 
-See the [product requirements](product-requirement-doc.md) for the complete product scope and acceptance criteria, and the [architecture](architecture.md) for the local-first engine, investigator harness, persistence, provider, and terminal-client design.
+See the [product requirements](docs/product-requirement-doc.md) for the complete product scope and acceptance criteria, and the [architecture](docs/architecture.md) for the local-first engine, investigator harness, persistence, provider, and terminal-client design.
 
 ## Current state
 
-M1 is complete: the strict TypeScript workspace, plugin runtime, validated configuration loader, and minimal runtime-booting CLI are in place. Durable events and local persistence are next; track delivery in [milestones.md](milestones.md).
+M2 is complete: the workspace now has its plugin runtime, durable event contracts, transactional local event store, and content-addressed artifact store. Projections and application services are next; track delivery in [milestones.md](docs/milestones.md).
 
 ## Build
 
 ### Prerequisites
 
-- Node.js 22 or later
+- Node.js 22.5 or later
 - pnpm 10.15.0, available through Corepack
 
 ### Install and verify

@@ -9,7 +9,8 @@ export type RuntimeErrorCode =
   | 'runtime_disposed'
   | 'plugin_setup_failed'
   | 'plugin_disposal_failed'
-  | 'invalid_configuration';
+  | 'invalid_configuration'
+  | 'unsafe_persistence_value';
 
 export class RuntimeError extends Error {
   public constructor(

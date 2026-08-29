@@ -1,8 +1,8 @@
 # SourceZero Milestones
 
 **Last updated:** 28 August 2026  
-**Current milestone:** M2 — Durable events and local persistence  
-**Progress:** 2 of 13 milestones complete
+**Current milestone:** M3 — Projections and application services  
+**Progress:** 3 of 13 milestones complete
 
 ## How to use this file
 
@@ -20,8 +20,8 @@
 | --------- | ------------------------------------------------------- | -------- |
 | M0        | Product and architecture baseline                       | Complete |
 | M1        | Workspace and plugin runtime                            | Complete |
-| M2        | Durable events and local persistence                    | Next     |
-| M3        | Projections and application services                    | Pending  |
+| M2        | Durable events and local persistence                    | Complete |
+| M3        | Projections and application services                    | Next     |
 | M4        | Interactive terminal workspace                          | Pending  |
 | M5        | Terminal provenance graph                               | Pending  |
 | M6        | Harness tool executor and provider seams                | Pending  |
@@ -87,7 +87,8 @@ A strict TypeScript workspace boots a deterministic local plugin composition and
 
 ## M2 — Durable events and local persistence
 
-**Status:** Next  
+**Status:** Complete  
+**Completed:** 28 August 2026  
 **Depends on:** M1
 
 ### Outcome
@@ -96,27 +97,30 @@ Investigations have immutable identities, a versioned append-only event vocabula
 
 ### Deliverables
 
-- [ ] Define branded investigation, event, source, claim, evidence, relationship, tool-call, and artifact IDs.
-- [ ] Define the event envelope and the first investigation lifecycle/configuration events.
-- [ ] Implement SQLite migrations, WAL setup, append transactions, reads, listing, and optimistic sequence checks.
-- [ ] Implement artifact hashing, bounded writes, atomic placement, reads, and metadata.
-- [ ] Add event and artifact schema/version handling.
-- [ ] Add redaction rules preventing credentials from entering events, artifacts, or diagnostics.
+- [x] Define branded investigation, event, source, claim, evidence, relationship, tool-call, and artifact IDs.
+- [x] Define the event envelope and the first investigation lifecycle/configuration events.
+- [x] Implement SQLite migrations, WAL setup, append transactions, reads, listing, and optimistic sequence checks.
+- [x] Implement artifact hashing, bounded writes, atomic placement, reads, and metadata.
+- [x] Add event and artifact schema/version handling.
+- [x] Add redaction rules preventing credentials from entering events, artifacts, or diagnostics.
 
 ### Completion gates
 
-- [ ] Concurrent or stale append attempts cannot create duplicate or non-contiguous sequences.
-- [ ] Restart tests reload the exact committed event stream.
-- [ ] Torn or failed artifact writes do not publish artifact metadata.
-- [ ] Temporary-database and temporary-artifact integration tests pass.
+- [x] Concurrent or stale append attempts cannot create duplicate or non-contiguous sequences.
+- [x] Restart tests reload the exact committed event stream.
+- [x] Torn or failed artifact writes do not publish artifact metadata.
+- [x] Temporary-database and temporary-artifact integration tests pass.
 
 ### Verification evidence
 
-- Not completed.
+- `corepack pnpm verify` — strict TypeScript check, ESLint, Prettier check, Drizzle migration validation, and 30 Vitest tests passed.
+- `corepack pnpm build` — all workspace projects built successfully.
+- Temporary SQLite integration tests verified WAL setup, atomic contiguous appends, stale-writer and duplicate rejection, exact restart reload, and format-version rejection.
+- Temporary artifact integration tests verified bounded content-addressed writes, hash validation, atomic publication, restart reads, secret rejection, and failure without metadata publication.
 
 ## M3 — Projections and application services
 
-**Status:** Pending  
+**Status:** Next  
 **Depends on:** M2
 
 ### Outcome
