@@ -10,7 +10,10 @@ export type RuntimeErrorCode =
   | 'plugin_setup_failed'
   | 'plugin_disposal_failed'
   | 'invalid_configuration'
-  | 'unsafe_persistence_value';
+  | 'unsafe_persistence_value'
+  | 'duplicate_projection_id'
+  | 'invalid_projection_definition'
+  | 'projection_not_registered';
 
 export class RuntimeError extends Error {
   public constructor(

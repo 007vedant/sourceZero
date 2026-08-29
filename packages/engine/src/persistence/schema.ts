@@ -37,6 +37,23 @@ export const investigationEvents = sqliteTable(
   ],
 );
 
+export const projectionCheckpoints = sqliteTable(
+  'projection_checkpoints',
+  {
+    investigationId: text('investigation_id')
+      .notNull()
+      .references(() => investigations.id),
+    projectionId: text('projection_id').notNull(),
+    projectionVersion: integer('projection_version').notNull(),
+    lastSequence: integer('last_sequence').notNull(),
+    stateJson: text('state_json').notNull(),
+    updatedAt: text('updated_at').notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.investigationId, table.projectionId] }),
+  ],
+);
+
 export const artifacts = sqliteTable('artifacts', {
   id: text('id').primaryKey(),
   algorithm: text('algorithm').notNull(),

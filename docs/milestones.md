@@ -1,8 +1,8 @@
 # SourceZero Milestones
 
-**Last updated:** 28 August 2026  
-**Current milestone:** M3 — Projections and application services  
-**Progress:** 3 of 13 milestones complete
+**Last updated:** 29 August 2026  
+**Current milestone:** M4 — Interactive terminal workspace  
+**Progress:** 4 of 13 milestones complete
 
 ## How to use this file
 
@@ -21,8 +21,8 @@
 | M0        | Product and architecture baseline                       | Complete |
 | M1        | Workspace and plugin runtime                            | Complete |
 | M2        | Durable events and local persistence                    | Complete |
-| M3        | Projections and application services                    | Next     |
-| M4        | Interactive terminal workspace                          | Pending  |
+| M3        | Projections and application services                    | Complete |
+| M4        | Interactive terminal workspace                          | Next     |
 | M5        | Terminal provenance graph                               | Pending  |
 | M6        | Harness tool executor and provider seams                | Pending  |
 | M7        | Claim framing and investigation lifecycle               | Pending  |
@@ -120,7 +120,8 @@ Investigations have immutable identities, a versioned append-only event vocabula
 
 ## M3 — Projections and application services
 
-**Status:** Next  
+**Status:** Complete  
+**Completed:** 29 August 2026  
 **Depends on:** M2
 
 ### Outcome
@@ -129,26 +130,29 @@ Pure versioned projections rebuild investigation state, and application services
 
 ### Deliverables
 
-- [ ] Implement projection registration, fold, checkpoint, invalidation, and rebuild.
-- [ ] Add lifecycle, progress, budget, trace, limitations, source, and graph projection foundations.
-- [ ] Implement gap-free observe-from-sequence behavior for local clients.
-- [ ] Define client-neutral `InvestigationWorkspaceView` and available-action models.
-- [ ] Implement create, list, show, and inspect application services.
+- [x] Implement projection registration, fold, checkpoint, invalidation, and rebuild.
+- [x] Add lifecycle, progress, budget, trace, limitations, source, and graph projection foundations.
+- [x] Implement gap-free observe-from-sequence behavior for local clients.
+- [x] Define client-neutral `InvestigationWorkspaceView` and available-action models.
+- [x] Implement create, list, show, and inspect application services.
 
 ### Completion gates
 
-- [ ] Full replay and checkpoint-plus-tail replay produce equivalent views.
-- [ ] Projection-version changes invalidate incompatible checkpoints.
-- [ ] A subscriber cannot miss events between initial snapshot and live observation.
-- [ ] Application services expose no Ink, SQLite-driver, or provider-specific types.
+- [x] Full replay and checkpoint-plus-tail replay produce equivalent views.
+- [x] Projection-version changes invalidate incompatible checkpoints.
+- [x] A subscriber cannot miss events between initial snapshot and live observation.
+- [x] Application services expose no Ink, SQLite-driver, or provider-specific types.
 
 ### Verification evidence
 
-- Not completed.
+- `corepack pnpm verify` — strict TypeScript check, ESLint, Prettier check, Drizzle migration validation, and 43 Vitest tests passed.
+- `corepack pnpm build` — all workspace projects built successfully.
+- Projection tests verified full-replay equivalence, checkpoint-plus-tail replay, version invalidation, sequence-gap rejection, and runtime state-schema enforcement.
+- Application integration tests used temporary SQLite databases to verify create, list, show, inspect, common snapshot watermarks, and gap-free backlog/live observation.
 
 ## M4 — Interactive terminal workspace
 
-**Status:** Pending  
+**Status:** Next  
 **Depends on:** M3
 
 ### Outcome

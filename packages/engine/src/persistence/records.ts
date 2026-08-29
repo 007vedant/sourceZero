@@ -7,6 +7,7 @@ import {
 import {
   INVESTIGATION_FORMAT_VERSION,
   investigationStatusSchema,
+  type InvestigationEvent,
 } from '../domain/events.js';
 
 const utcTimestampSchema = z.iso
@@ -61,4 +62,41 @@ export type ArtifactRecord = z.infer<typeof artifactRecordSchema>;
 export interface ArtifactMetadataRepository {
   getArtifact(id: ArtifactRecord['id']): ArtifactRecord | undefined;
   putArtifact(record: ArtifactRecord): ArtifactRecord;
+}
+
+export const projectionCheckpointSchema = z
+  .object({
+    investigationId: investigationIdSchema,
+    projectionId: z.string().min(1).max(200),
+    projectionVersion: z.number().int().positive(),
+    lastSequence: z.number().int().nonnegative(),
+    state: z.json(),
+    updatedAt: utcTimestampSchema,
+  })
+  .strict();
+
+export type ProjectionCheckpoint = z.infer<typeof projectionCheckpointSchema>;
+
+export interface ProjectionCheckpointRepository {
+  getProjectionCheckpoint(
+    investigationId: ProjectionCheckpoint['investigationId'],
+    projectionId: string,
+  ): ProjectionCheckpoint | undefined;
+  putProjectionCheckpoint(checkpoint: ProjectionCheckpoint): void;
+  deleteProjectionCheckpoint(
+    investigationId: ProjectionCheckpoint['investigationId'],
+    projectionId: string,
+  ): void;
+}
+
+export interface InvestigationEventSnapshot {
+  readonly investigation: InvestigationRecord;
+  readonly events: readonly InvestigationEvent[];
+}
+
+export interface InvestigationSnapshotReader {
+  readInvestigationSnapshot(
+    investigationId: InvestigationRecord['id'],
+    afterSequence?: number,
+  ): InvestigationEventSnapshot;
 }

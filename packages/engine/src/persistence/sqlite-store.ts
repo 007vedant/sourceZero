@@ -30,9 +30,14 @@ import { PersistenceError } from './errors.js';
 import {
   artifactRecordSchema,
   investigationRecordSchema,
+  projectionCheckpointSchema,
   type ArtifactMetadataRepository,
   type ArtifactRecord,
   type InvestigationRecord,
+  type InvestigationEventSnapshot,
+  type InvestigationSnapshotReader,
+  type ProjectionCheckpoint,
+  type ProjectionCheckpointRepository,
 } from './records.js';
 
 const defaultMigrationsFolder = fileURLToPath(
@@ -72,6 +77,15 @@ const artifactRowSchema = z.object({
   format_version: z.number(),
 });
 
+const projectionCheckpointRowSchema = z.object({
+  investigation_id: z.string(),
+  projection_id: z.string(),
+  projection_version: z.number(),
+  last_sequence: z.number(),
+  state_json: z.string(),
+  updated_at: z.string(),
+});
+
 export interface OpenSqliteStoreOptions {
   readonly databasePath: string;
   readonly migrationsFolder?: string;
@@ -79,7 +93,13 @@ export interface OpenSqliteStoreOptions {
   readonly clock?: () => Date;
 }
 
-export class SqliteStore implements Disposable, ArtifactMetadataRepository {
+export class SqliteStore
+  implements
+    Disposable,
+    ArtifactMetadataRepository,
+    InvestigationSnapshotReader,
+    ProjectionCheckpointRepository
+{
   readonly #database: DatabaseSync;
   readonly #redactor: SecretRedactor;
   readonly #clock: () => Date;
@@ -301,6 +321,39 @@ export class SqliteStore implements Disposable, ArtifactMetadataRepository {
     return rows.map((row) => parseEventRow(row));
   }
 
+  public readInvestigationSnapshot(
+    investigationId: InvestigationId,
+    afterSequence = 0,
+  ): InvestigationEventSnapshot {
+    this.#assertActive();
+    if (!Number.isInteger(afterSequence) || afterSequence < 0) {
+      throw new PersistenceError(
+        'invalid_persistence_data',
+        'Snapshot watermark must be a non-negative integer.',
+      );
+    }
+    return this.#readTransaction(() => {
+      const investigation = this.#selectInvestigation(investigationId);
+      if (investigation === undefined) {
+        throw new PersistenceError(
+          'investigation_not_found',
+          `Investigation "${investigationId}" does not exist.`,
+        );
+      }
+      const rows = this.#database
+        .prepare(
+          `SELECT * FROM investigation_events
+            WHERE investigation_id = ? AND sequence > ? AND sequence <= ?
+            ORDER BY sequence`,
+        )
+        .all(investigationId, afterSequence, investigation.lastSequence);
+      return {
+        investigation,
+        events: rows.map((row) => parseEventRow(row)),
+      };
+    });
+  }
+
   public getArtifact(id: ArtifactRecord['id']): ArtifactRecord | undefined {
     this.#assertActive();
     const row = this.#database
@@ -363,6 +416,63 @@ export class SqliteStore implements Disposable, ArtifactMetadataRepository {
     }
   }
 
+  public getProjectionCheckpoint(
+    investigationId: InvestigationId,
+    projectionId: string,
+  ): ProjectionCheckpoint | undefined {
+    this.#assertActive();
+    const row = this.#database
+      .prepare(
+        `SELECT * FROM projection_checkpoints
+          WHERE investigation_id = ? AND projection_id = ?`,
+      )
+      .get(investigationId, projectionId);
+    return row === undefined ? undefined : parseProjectionCheckpointRow(row);
+  }
+
+  public putProjectionCheckpoint(checkpoint: ProjectionCheckpoint): void {
+    this.#assertActive();
+    const validated = parsePersistenceValue(
+      projectionCheckpointSchema,
+      checkpoint,
+      'a projection checkpoint',
+    );
+    this.#redactor.assertSafe(validated.state, 'a projection checkpoint');
+    this.#database
+      .prepare(
+        `INSERT INTO projection_checkpoints
+          (investigation_id, projection_id, projection_version,
+           last_sequence, state_json, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT (investigation_id, projection_id) DO UPDATE SET
+           projection_version = excluded.projection_version,
+           last_sequence = excluded.last_sequence,
+           state_json = excluded.state_json,
+           updated_at = excluded.updated_at`,
+      )
+      .run(
+        validated.investigationId,
+        validated.projectionId,
+        validated.projectionVersion,
+        validated.lastSequence,
+        JSON.stringify(validated.state),
+        validated.updatedAt,
+      );
+  }
+
+  public deleteProjectionCheckpoint(
+    investigationId: InvestigationId,
+    projectionId: string,
+  ): void {
+    this.#assertActive();
+    this.#database
+      .prepare(
+        `DELETE FROM projection_checkpoints
+          WHERE investigation_id = ? AND projection_id = ?`,
+      )
+      .run(investigationId, projectionId);
+  }
+
   public dispose(): void {
     if (this.#disposed) {
       return;
@@ -382,6 +492,18 @@ export class SqliteStore implements Disposable, ArtifactMetadataRepository {
 
   #transaction<T>(operation: () => T): T {
     this.#database.exec('BEGIN IMMEDIATE');
+    try {
+      const result = operation();
+      this.#database.exec('COMMIT');
+      return result;
+    } catch (error: unknown) {
+      this.#database.exec('ROLLBACK');
+      throw error;
+    }
+  }
+
+  #readTransaction<T>(operation: () => T): T {
+    this.#database.exec('BEGIN');
     try {
       const result = operation();
       this.#database.exec('COMMIT');
@@ -558,6 +680,26 @@ function parseArtifactRow(row: unknown): ArtifactRecord {
       formatVersion: parsed.format_version,
     },
     'artifact metadata',
+  );
+}
+
+function parseProjectionCheckpointRow(row: unknown): ProjectionCheckpoint {
+  const parsed = parsePersistenceValue(
+    projectionCheckpointRowSchema,
+    row,
+    'a projection checkpoint',
+  );
+  return parsePersistenceValue(
+    projectionCheckpointSchema,
+    {
+      investigationId: parsed.investigation_id,
+      projectionId: parsed.projection_id,
+      projectionVersion: parsed.projection_version,
+      lastSequence: parsed.last_sequence,
+      state: parseJson(parsed.state_json),
+      updatedAt: parsed.updated_at,
+    },
+    'a projection checkpoint',
   );
 }
 

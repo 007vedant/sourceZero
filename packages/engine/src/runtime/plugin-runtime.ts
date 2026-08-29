@@ -1,10 +1,15 @@
 import type { Disposable } from './disposable.js';
+import type { ProjectionDefinition } from '../domain/projection.js';
 import { RuntimeError } from './errors.js';
+import { ProjectionRegistry } from './projection-registry.js';
 import type { ServiceKey } from './service-key.js';
 import { ServiceRegistry } from './service-registry.js';
 
 export interface PluginContext {
   registerService<T>(key: ServiceKey<T>, service: T): Disposable;
+  registerProjection<State, View>(
+    projection: ProjectionDefinition<State, View>,
+  ): Disposable;
   getService<T>(key: ServiceKey<T>): T;
 }
 
@@ -22,20 +27,24 @@ interface StartedPlugin {
 
 export class PluginRuntime implements Disposable {
   readonly #registry: ServiceRegistry;
+  readonly #projections: ProjectionRegistry;
   readonly #startedPlugins: readonly StartedPlugin[];
   #disposed = false;
 
   private constructor(
     registry: ServiceRegistry,
+    projections: ProjectionRegistry,
     startedPlugins: readonly StartedPlugin[],
   ) {
     this.#registry = registry;
+    this.#projections = projections;
     this.#startedPlugins = startedPlugins;
   }
 
   public static async boot(plugins: readonly Plugin[]): Promise<PluginRuntime> {
     const orderedPlugins = orderPlugins(plugins);
     const registry = new ServiceRegistry();
+    const projections = new ProjectionRegistry();
     const startedPlugins: StartedPlugin[] = [];
 
     try {
@@ -46,6 +55,13 @@ export class PluginRuntime implements Disposable {
         );
         const context: PluginContext = {
           getService: <T>(key: ServiceKey<T>): T => registry.get(key),
+          registerProjection: <State, View>(
+            projection: ProjectionDefinition<State, View>,
+          ): Disposable => {
+            const disposable = projections.register(plugin.id, projection);
+            pluginDisposables.push(disposable);
+            return disposable;
+          },
           registerService: <T>(key: ServiceKey<T>, service: T): Disposable => {
             if (!declaredServiceIds.has(key.id)) {
               throw new RuntimeError(
@@ -92,12 +108,13 @@ export class PluginRuntime implements Disposable {
         }
       }
 
-      return new PluginRuntime(registry, startedPlugins);
+      return new PluginRuntime(registry, projections, startedPlugins);
     } catch (error: unknown) {
       try {
         await disposeStartedPlugins(startedPlugins);
       } finally {
         registry.dispose();
+        projections.dispose();
       }
       throw error;
     }
@@ -114,6 +131,16 @@ export class PluginRuntime implements Disposable {
     return this.#registry.get(key);
   }
 
+  public getProjectionRegistry(): ProjectionRegistry {
+    if (this.#disposed) {
+      throw new RuntimeError(
+        'runtime_disposed',
+        'The plugin runtime is disposed.',
+      );
+    }
+    return this.#projections;
+  }
+
   public async dispose(): Promise<void> {
     if (this.#disposed) {
       return;
@@ -124,6 +151,7 @@ export class PluginRuntime implements Disposable {
       await disposeStartedPlugins(this.#startedPlugins);
     } finally {
       this.#registry.dispose();
+      this.#projections.dispose();
     }
   }
 }

@@ -8,7 +8,7 @@ See the [product requirements](docs/product-requirement-doc.md) for the complete
 
 ## Current state
 
-M2 is complete: the workspace now has its plugin runtime, durable event contracts, transactional local event store, and content-addressed artifact store. Projections and application services are next; track delivery in [milestones.md](docs/milestones.md).
+M3 is complete: the headless engine now rebuilds versioned projections and exposes client-neutral investigation services and workspace views. The interactive terminal workspace is next; track delivery in [milestones.md](docs/milestones.md).
 
 ## Build
 

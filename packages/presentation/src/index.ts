@@ -1,2 +1,1 @@
-// Client-neutral presentation models begin in M3.
-export {};
+export * from './workspace.js';

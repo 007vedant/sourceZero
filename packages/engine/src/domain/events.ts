@@ -71,7 +71,7 @@ export const investigationPolicySchema = z
 
 export type InvestigationPolicy = z.infer<typeof investigationPolicySchema>;
 
-const originalInputSchema = z.discriminatedUnion('kind', [
+export const originalInputSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('claim'), claim: z.string().min(1) }).strict(),
   z.object({ kind: z.literal('url'), url: z.url() }).strict(),
   z
@@ -82,6 +82,8 @@ const originalInputSchema = z.discriminatedUnion('kind', [
     })
     .strict(),
 ]);
+
+export type OriginalInput = z.infer<typeof originalInputSchema>;
 
 const envelopeSchema = z.object({
   investigationId: investigationIdSchema,
