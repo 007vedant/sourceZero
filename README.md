@@ -8,7 +8,7 @@ See the [product requirements](docs/product-requirement-doc.md) for the complete
 
 ## Current state
 
-M3 is complete: the headless engine now rebuilds versioned projections and exposes client-neutral investigation services and workspace views. The interactive terminal workspace is next; track delivery in [milestones.md](docs/milestones.md).
+M4 is complete: the CLI now has a fixture-driven interactive terminal workspace with accessible, responsive views plus plain and JSON output. The terminal provenance graph is next; track delivery in [milestones.md](docs/milestones.md).
 
 ## Build
 
@@ -34,7 +34,7 @@ pnpm build
 node apps/cli/dist/bin.js
 ```
 
-The current CLI only boots and disposes a fixture plugin composition; investigation commands will arrive in later milestones.
+In a TTY, the command opens the fixture claim-framing flow and investigation workspace. Redirected output defaults to plain text; use `--json` for machine-readable output. See the [milestone plan](docs/milestones.md) for the remaining investigation capabilities.
 
 ## Contributing
 

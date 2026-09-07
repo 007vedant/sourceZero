@@ -1,8 +1,8 @@
 # SourceZero Milestones
 
 **Last updated:** 29 August 2026  
-**Current milestone:** M4 — Interactive terminal workspace  
-**Progress:** 4 of 13 milestones complete
+**Current milestone:** M5 — Terminal provenance graph  
+**Progress:** 5 of 13 milestones complete
 
 ## How to use this file
 
@@ -22,8 +22,8 @@
 | M1        | Workspace and plugin runtime                            | Complete |
 | M2        | Durable events and local persistence                    | Complete |
 | M3        | Projections and application services                    | Complete |
-| M4        | Interactive terminal workspace                          | Next     |
-| M5        | Terminal provenance graph                               | Pending  |
+| M4        | Interactive terminal workspace                          | Complete |
+| M5        | Terminal provenance graph                               | Next     |
 | M6        | Harness tool executor and provider seams                | Pending  |
 | M7        | Claim framing and investigation lifecycle               | Pending  |
 | M8        | Source discovery, retrieval, and extraction             | Pending  |
@@ -152,7 +152,8 @@ Pure versioned projections rebuild investigation state, and application services
 
 ## M4 — Interactive terminal workspace
 
-**Status:** Next  
+**Status:** Complete  
+**Completed:** 29 August 2026  
 **Depends on:** M3
 
 ### Outcome
@@ -161,27 +162,32 @@ The CLI opens a responsive interactive TUI driven by fixture and replayed invest
 
 ### Deliverables
 
-- [ ] Add Ink-based application lifecycle with safe terminal setup and teardown.
-- [ ] Implement Overview, Timeline, Evidence, Limitations, and Trace views against presentation models.
-- [ ] Implement tabs, focus, keyboard help, scrolling, resize handling, and narrow-terminal layouts.
-- [ ] Implement claim-entry, selection, editing, and confirmation components using fixtures.
-- [ ] Add screen-reader and reduced-decoration modes.
-- [ ] Add `--plain` and `--json` behavior for non-interactive use.
+- [x] Add Ink-based application lifecycle with safe terminal setup and teardown.
+- [x] Implement Overview, Timeline, Evidence, Limitations, and Trace views against presentation models.
+- [x] Implement tabs, focus, keyboard help, scrolling, resize handling, and narrow-terminal layouts.
+- [x] Implement claim-entry, selection, editing, and confirmation components using fixtures.
+- [x] Add screen-reader and reduced-decoration modes.
+- [x] Add `--plain` and `--json` behavior for non-interactive use.
 
 ### Completion gates
 
-- [ ] Fixed-size frame tests cover wide, narrow, empty, running, failed, canceled, and completed states.
-- [ ] Keyboard tests cover every primary navigation and confirmation action.
-- [ ] Redirected output contains no terminal control sequences.
-- [ ] TUI teardown restores terminal state after success, error, and interruption.
+- [x] Fixed-size frame tests cover wide, narrow, empty, running, failed, canceled, and completed states.
+- [x] Keyboard tests cover every primary navigation and confirmation action.
+- [x] Redirected output contains no terminal control sequences.
+- [x] TUI teardown restores terminal state after success, error, and interruption.
 
 ### Verification evidence
 
-- Not completed.
+- `corepack pnpm verify` — strict TypeScript check, ESLint, Prettier check, Drizzle migration validation, and 61 Vitest tests passed.
+- `corepack pnpm build` — all workspace projects built successfully.
+- Fixed-dimension frame tests verified wide and narrow layouts, accessibility labels, empty content, and draft, running, failed, canceled, and completed investigation states.
+- Keyboard tests verified claim entry, fixture proposal selection, editing, explicit confirmation, tabs, focus, scrolling, help, and safe exit.
+- CLI integration checks verified redirected plain output and parseable JSON contain no ANSI controls; a built JSON-mode process produced empty stderr.
+- Lifecycle tests verified alternate-screen teardown and signal-listener restoration after normal exit, terminal boot failure, renderer failure, and interruption.
 
 ## M5 — Terminal provenance graph
 
-**Status:** Pending  
+**Status:** Next  
 **Depends on:** M4
 
 ### Outcome
