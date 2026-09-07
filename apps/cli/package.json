@@ -10,6 +10,13 @@
   "types": "./dist/index.d.ts",
   "dependencies": {
     "@sourcezero/engine": "workspace:*",
-    "commander": "^14.0.0"
+    "@sourcezero/presentation": "workspace:*",
+    "commander": "^14.0.0",
+    "ink": "7.1.1",
+    "react": "19.2.8",
+    "react-devtools-core": "6.1.2"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18"
   }
 }
