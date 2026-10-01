@@ -85,6 +85,31 @@ export const originalInputSchema = z.discriminatedUnion('kind', [
 
 export type OriginalInput = z.infer<typeof originalInputSchema>;
 
+export const budgetDeltaSchema = z
+  .object({
+    searchRequests: z.number().int().nonnegative().optional(),
+    retrievedSources: z.number().int().nonnegative().optional(),
+    modelTokens: z.number().int().nonnegative().optional(),
+    wallClockMs: z.number().int().nonnegative().optional(),
+    graphNodes: z.number().int().nonnegative().optional(),
+  })
+  .strict()
+  .refine(
+    (delta) => Object.values(delta).some((value) => value !== undefined),
+    'A budget delta must contain at least one dimension.',
+  );
+
+export type BudgetDelta = z.infer<typeof budgetDeltaSchema>;
+
+export const toolFailureCodeSchema = z.enum([
+  'provider_failure',
+  'timeout',
+  'canceled',
+  'invalid_output',
+]);
+
+export type ToolFailureCode = z.infer<typeof toolFailureCodeSchema>;
+
 const envelopeSchema = z.object({
   investigationId: investigationIdSchema,
   eventId: eventIdSchema,
@@ -128,10 +153,103 @@ const investigationStatusChangedEventSchema = envelopeSchema
   })
   .strict();
 
+const toolRequestedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('tool.requested'),
+    data: z
+      .object({
+        toolCallId: toolCallIdSchema,
+        toolName: z.string().min(1).max(200),
+        input: z.json(),
+        timeoutMs: z.number().int().positive(),
+        maxAttempts: z.number().int().positive(),
+      })
+      .strict(),
+  })
+  .strict();
+
+const toolStartedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('tool.started'),
+    data: z
+      .object({
+        toolCallId: toolCallIdSchema,
+        toolName: z.string().min(1).max(200),
+        attempt: z.number().int().positive(),
+      })
+      .strict(),
+  })
+  .strict();
+
+const toolRetryScheduledEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('tool.retry_scheduled'),
+    data: z
+      .object({
+        toolCallId: toolCallIdSchema,
+        toolName: z.string().min(1).max(200),
+        failedAttempt: z.number().int().positive(),
+        nextAttempt: z.number().int().positive(),
+        delayMs: z.number().int().nonnegative(),
+        failureCode: toolFailureCodeSchema,
+      })
+      .strict(),
+  })
+  .strict();
+
+const toolSucceededEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('tool.succeeded'),
+    data: z
+      .object({
+        toolCallId: toolCallIdSchema,
+        toolName: z.string().min(1).max(200),
+        attempt: z.number().int().positive(),
+        durationMs: z.number().int().nonnegative(),
+        output: z.json(),
+      })
+      .strict(),
+  })
+  .strict();
+
+const toolFailedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('tool.failed'),
+    data: z
+      .object({
+        toolCallId: toolCallIdSchema,
+        toolName: z.string().min(1).max(200),
+        attempt: z.number().int().positive(),
+        durationMs: z.number().int().nonnegative(),
+        failureCode: toolFailureCodeSchema,
+      })
+      .strict(),
+  })
+  .strict();
+
+const budgetConsumedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('budget.consumed'),
+    data: z
+      .object({
+        toolCallId: toolCallIdSchema,
+        reason: z.string().min(1).max(200),
+        delta: budgetDeltaSchema,
+      })
+      .strict(),
+  })
+  .strict();
+
 export const investigationEventSchema = z.discriminatedUnion('type', [
   investigationCreatedEventSchema,
   investigationPolicyResolvedEventSchema,
   investigationStatusChangedEventSchema,
+  toolRequestedEventSchema,
+  toolStartedEventSchema,
+  toolRetryScheduledEventSchema,
+  toolSucceededEventSchema,
+  toolFailedEventSchema,
+  budgetConsumedEventSchema,
 ]);
 
 type DeepReadonly<Value> = Value extends

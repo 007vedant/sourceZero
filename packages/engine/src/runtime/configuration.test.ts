@@ -29,6 +29,7 @@ describe('loadLocalConfiguration', () => {
     await expect(loadLocalConfiguration({ environment: {} })).resolves.toEqual({
       configVersion: 1,
       runtime: { logLevel: 'info' },
+      providers: {},
     });
   });
 
@@ -40,6 +41,25 @@ describe('loadLocalConfiguration', () => {
     await expect(loadLocalConfiguration({ path })).resolves.toEqual({
       configVersion: 1,
       runtime: { logLevel: 'debug' },
+      providers: {},
+    });
+  });
+
+  it('loads explicit provider and model selections without credentials', async () => {
+    const path = await writeConfiguration(
+      JSON.stringify({
+        providers: {
+          model: { providerId: 'openai.responses', modelId: 'gpt-6-astra' },
+          search: { providerId: 'fixture.search' },
+        },
+      }),
+    );
+
+    await expect(loadLocalConfiguration({ path })).resolves.toMatchObject({
+      providers: {
+        model: { providerId: 'openai.responses', modelId: 'gpt-6-astra' },
+        search: { providerId: 'fixture.search' },
+      },
     });
   });
 

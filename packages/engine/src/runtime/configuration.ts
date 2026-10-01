@@ -4,6 +4,16 @@ import { z } from 'zod';
 
 import { RuntimeError } from './errors.js';
 
+const providerIdSchema = z.string().trim().min(1).max(200);
+
+const providerSelectionSchema = z
+  .object({ providerId: providerIdSchema })
+  .strict();
+
+const modelProviderSelectionSchema = providerSelectionSchema
+  .extend({ modelId: z.string().trim().min(1).max(200) })
+  .strict();
+
 const sourceZeroConfigSchema = z
   .object({
     configVersion: z.literal(1).default(1),
@@ -15,6 +25,15 @@ const sourceZeroConfigSchema = z
       })
       .strict()
       .default({ logLevel: 'info' }),
+    providers: z
+      .object({
+        model: modelProviderSelectionSchema.optional(),
+        search: providerSelectionSchema.optional(),
+        fetch: providerSelectionSchema.optional(),
+        extraction: providerSelectionSchema.optional(),
+      })
+      .strict()
+      .default({}),
   })
   .strict();
 

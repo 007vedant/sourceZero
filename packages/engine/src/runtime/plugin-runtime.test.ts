@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 
 import { toDisposable } from './disposable.js';
 import { RuntimeError } from './errors.js';
@@ -42,6 +43,37 @@ describe('PluginRuntime', () => {
     expect(started).toEqual(['aardvark', 'provider', 'consumer:ready']);
     expect(runtime.getService(betaService)).toBe(42);
     await runtime.dispose();
+  });
+
+  it('owns registered tool lifecycles', async () => {
+    const runtime = await PluginRuntime.boot([
+      {
+        id: 'tool-provider',
+        setup(context) {
+          context.registerTool({
+            name: 'fixture.echo',
+            description: 'Echoes validated fixture text.',
+            inputSchema: z.object({ text: z.string() }).strict(),
+            outputSchema: z.object({ text: z.string() }).strict(),
+            timeoutMs: 100,
+            retryPolicy: {
+              maxRetries: 0,
+              delayMs: 0,
+              retryableFailureCodes: [],
+            },
+            execute: (input) => Promise.resolve(input),
+          });
+        },
+      },
+    ]);
+
+    expect(runtime.getToolRegistry().get('fixture.echo').name).toBe(
+      'fixture.echo',
+    );
+    await runtime.dispose();
+    expect(() => runtime.getToolRegistry()).toThrowError(
+      expect.objectContaining({ code: 'runtime_disposed' }),
+    );
   });
 
   it.each([

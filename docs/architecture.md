@@ -1,7 +1,7 @@
 # SourceZero Architecture
 
 **Status:** Accepted baseline for implementation  
-**Last updated:** 8 September 2026<br>
+**Last updated:** 1 October 2026<br>
 **Scope:** Local-first engine, investigator harness, interactive terminal application, and CLI automation surfaces  
 **Product requirements:** [product-requirement-doc.md](product-requirement-doc.md)  
 **Delivery plan:** [milestones.md](milestones.md)
@@ -213,6 +213,10 @@ Initial seams are:
 
 A capability runtime resolves the configured provider at execution time. With no configured ID, exactly one usable provider may be selected automatically. Zero or multiple usable providers fail with structured configuration errors.
 
+The first hosted model implementation is the `openai.responses` adapter, using the [OpenAI Responses API](https://developers.openai.com/api/docs/guides/migrate-to-responses). The selected provider ID and model ID are explicit configuration; the engine has no provider-specific default. The adapter exposes strict function schemas, disables provider-side response storage, normalizes text, refusals, tool calls, and token usage, and resolves `OPENAI_API_KEY` only when a call begins. OpenAI SDK types remain inside `packages/providers`.
+
+Fixture and replay implementations exist for every initial provider seam. Replay providers consume an exact ordered request/response recording and have no delegate, so replay cannot accidentally make a model or network call.
+
 ## 8. Investigation events
 
 ### 8.1 Event envelope
@@ -383,6 +387,10 @@ validate input
 ```
 
 Tool bodies do not append arbitrary events. They return canonical values or domain command proposals to an application service that validates and commits them. Timeouts and cancellation never detach uncontrolled same-process work.
+
+Provider capabilities are registered as tools before the harness invokes them, so model, search, fetch, and extraction calls share the same executor invariants. Provider inputs and outputs are validated twice: at their capability boundary and at the central tool boundary. Invalid values may produce a structured operational failure event but can never produce a successful or graph-changing event.
+
+The executor reserves the maximum declared budget before recording or starting work. It then records call identity, each started attempt, retry decisions, one terminal outcome, and actual usage. Terminal outcome and budget-consumption events are appended together. Invalid input, preflight cancellation, and budget rejection schedule no work and create no tool-call events. Timeout, active cancellation, provider failure, invalid output, and budget exhaustion remain distinct outcomes.
 
 ## 13. Graph integrity
 

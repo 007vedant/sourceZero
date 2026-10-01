@@ -1,8 +1,8 @@
 # SourceZero Milestones
 
-**Last updated:** 8 September 2026<br>
-**Current milestone:** M6 — Harness tool executor and provider seams<br>
-**Progress:** 6 of 13 milestones complete
+**Last updated:** 1 October 2026<br>
+**Current milestone:** M7 — Claim framing and investigation lifecycle<br>
+**Progress:** 7 of 13 milestones complete
 
 ## How to use this file
 
@@ -24,8 +24,8 @@
 | M3        | Projections and application services                    | Complete |
 | M4        | Interactive terminal workspace                          | Complete |
 | M5        | Terminal provenance graph                               | Complete |
-| M6        | Harness tool executor and provider seams                | Next     |
-| M7        | Claim framing and investigation lifecycle               | Pending  |
+| M6        | Harness tool executor and provider seams                | Complete |
+| M7        | Claim framing and investigation lifecycle               | Next     |
 | M8        | Source discovery, retrieval, and extraction             | Pending  |
 | M9        | Evidence graph and provenance analysis                  | Pending  |
 | M10       | Origin, independence, and mutation findings             | Pending  |
@@ -223,7 +223,8 @@ Users can explore a live provenance graph inside the terminal with evidence-equi
 
 ## M6 — Harness tool executor and provider seams
 
-**Status:** Next<br>
+**Status:** Complete<br>
+**Completed:** 1 October 2026<br>
 **Depends on:** M2, M3
 
 ### Outcome
@@ -232,28 +233,32 @@ The harness can invoke validated, cancellable, budgeted tools through explicit m
 
 ### Deliverables
 
-- [ ] Implement typed tool registration and canonical JSON input/output contracts.
-- [ ] Implement validation, call identity, timeout, retry, cancellation, event recording, and normalized failures.
-- [ ] Define model, search, fetch, and extraction provider interfaces and registries.
-- [ ] Implement explicit provider selection and ambiguity failures.
-- [ ] Add deterministic fixture and replay providers for every seam.
-- [ ] Add first real model provider adapter.
+- [x] Implement typed tool registration and canonical JSON input/output contracts.
+- [x] Implement validation, call identity, timeout, retry, cancellation, event recording, and normalized failures.
+- [x] Define model, search, fetch, and extraction provider interfaces and registries.
+- [x] Implement explicit provider selection and ambiguity failures.
+- [x] Add deterministic fixture and replay providers for every seam.
+- [x] Add first real model provider adapter.
 
 ### Completion gates
 
-- [ ] Contract tests run against every provider implementation.
-- [ ] Cancellation stops scheduling and reaches every active provider call.
-- [ ] Invalid model/tool/provider values cannot create domain events.
-- [ ] Retry and timeout accounting is durable and deterministic.
-- [ ] Replayed provider results require no network or model call.
+- [x] Contract tests run against every provider implementation.
+- [x] Cancellation stops scheduling and reaches every active provider call.
+- [x] Invalid model/tool/provider values cannot create domain events.
+- [x] Retry and timeout accounting is durable and deterministic.
+- [x] Replayed provider results require no network or model call.
 
 ### Verification evidence
 
-- Not completed.
+- `corepack pnpm verify` — strict TypeScript check, ESLint, Prettier check, Drizzle migration validation, and 107 Vitest tests passed.
+- `corepack pnpm build` — all workspace projects built successfully.
+- Provider contract tests covered fixture and replay implementations for model, search, fetch, and extraction plus the OpenAI Responses adapter with an injected client.
+- Executor integration tests used temporary SQLite stores to verify canonical validation, call identity, durable attempt/retry/terminal events, deterministic usage accounting, timeouts, active and preflight cancellation, budget rejection, and invalid-output containment.
+- Replay tests verified exact request matching and operation without a model, network client, or fallback delegate.
 
 ## M7 — Claim framing and investigation lifecycle
 
-**Status:** Pending  
+**Status:** Next<br>
 **Depends on:** M4, M6
 
 ### Outcome

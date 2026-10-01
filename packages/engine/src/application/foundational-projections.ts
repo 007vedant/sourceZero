@@ -15,6 +15,7 @@ import {
   investigationPolicySchema,
   investigationStatusSchema,
   originalInputSchema,
+  type BudgetDelta,
   type InvestigationStatus,
   type OriginalInput,
 } from '../domain/events.js';
@@ -53,6 +54,12 @@ export const lifecycleProjection: ProjectionDefinition<
       case 'investigation.status_changed':
         return { ...state, status: event.data.to };
       case 'investigation.policy_resolved':
+      case 'tool.requested':
+      case 'tool.started':
+      case 'tool.retry_scheduled':
+      case 'tool.succeeded':
+      case 'tool.failed':
+      case 'budget.consumed':
         return state;
     }
   },
@@ -83,6 +90,12 @@ export const progressProjection: ProjectionDefinition<
       case 'investigation.status_changed':
         return { status: event.data.to };
       case 'investigation.policy_resolved':
+      case 'tool.requested':
+      case 'tool.started':
+      case 'tool.retry_scheduled':
+      case 'tool.succeeded':
+      case 'tool.failed':
+      case 'budget.consumed':
         return state;
     }
   },
@@ -102,6 +115,8 @@ const budgetUsageSchema = z
   })
   .strict();
 
+type BudgetUsage = z.infer<typeof budgetUsageSchema>;
+
 const budgetStateSchema = z
   .object({
     policy: investigationPolicySchema.optional(),
@@ -111,13 +126,13 @@ const budgetStateSchema = z
 
 type BudgetState = z.infer<typeof budgetStateSchema>;
 
-const emptyBudgetUsage = {
+const emptyBudgetUsage: BudgetUsage = {
   searchRequests: 0,
   retrievedSources: 0,
   modelTokens: 0,
   wallClockMs: 0,
   graphNodes: 0,
-} as const;
+};
 
 export const budgetProjection: ProjectionDefinition<BudgetState, BudgetView> = {
   id: 'sourcezero.budget',
@@ -130,7 +145,17 @@ export const budgetProjection: ProjectionDefinition<BudgetState, BudgetView> = {
         return { ...state, policy: event.data.policy };
       case 'investigation.created':
       case 'investigation.status_changed':
+      case 'tool.requested':
+      case 'tool.started':
+      case 'tool.retry_scheduled':
+      case 'tool.succeeded':
+      case 'tool.failed':
         return state;
+      case 'budget.consumed':
+        return {
+          ...state,
+          usage: addBudgetDelta(state.usage, event.data.delta),
+        };
     }
   },
   view(state) {
@@ -270,4 +295,14 @@ function stageForStatus(status: InvestigationStatus): ProgressView['stage'] {
     case 'interrupted':
       return 'stopped';
   }
+}
+
+function addBudgetDelta(usage: BudgetUsage, delta: BudgetDelta): BudgetUsage {
+  return {
+    searchRequests: usage.searchRequests + (delta.searchRequests ?? 0),
+    retrievedSources: usage.retrievedSources + (delta.retrievedSources ?? 0),
+    modelTokens: usage.modelTokens + (delta.modelTokens ?? 0),
+    wallClockMs: usage.wallClockMs + (delta.wallClockMs ?? 0),
+    graphNodes: usage.graphNodes + (delta.graphNodes ?? 0),
+  };
 }

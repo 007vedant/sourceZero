@@ -10,5 +10,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
+  },
+  "dependencies": {
+    "@sourcezero/engine": "workspace:*",
+    "openai": "7.25.0",
+    "zod": "^4.1.5"
   }
 }

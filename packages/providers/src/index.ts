@@ -1,2 +1,4 @@
-// Provider implementations begin in M6; no provider SDK belongs in the engine.
-export {};
+/** Exposes concrete providers while keeping their SDKs outside the engine. */
+
+export * from './deterministic-providers.js';
+export * from './openai-model-provider.js';

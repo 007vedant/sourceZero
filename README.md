@@ -8,7 +8,7 @@ See the [product requirements](docs/product-requirement-doc.md) for the complete
 
 ## Current state
 
-M5 is complete: the fixture-driven CLI now includes an interactive, accessible terminal provenance graph alongside plain and JSON output. Investigation providers are not wired yet; the harness tool executor and provider seams are next. Track delivery in [milestones.md](docs/milestones.md).
+M6 is complete: the engine now has a durable, cancellable tool executor, provider-neutral capability seams, deterministic fixture/replay providers, and an OpenAI Responses adapter. The CLI remains fixture-driven until claim framing and the live investigation lifecycle are connected in M7. Track delivery in [milestones.md](docs/milestones.md).
 
 ## Build
 

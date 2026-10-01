@@ -1,5 +1,6 @@
 import type { Disposable } from './disposable.js';
 import type { ProjectionDefinition } from '../domain/projection.js';
+import { ToolRegistry, type ToolDefinition } from '../harness/tool-registry.js';
 import { RuntimeError } from './errors.js';
 import { ProjectionRegistry } from './projection-registry.js';
 import type { ServiceKey } from './service-key.js';
@@ -10,6 +11,7 @@ export interface PluginContext {
   registerProjection<State, View>(
     projection: ProjectionDefinition<State, View>,
   ): Disposable;
+  registerTool<Input, Output>(tool: ToolDefinition<Input, Output>): Disposable;
   getService<T>(key: ServiceKey<T>): T;
 }
 
@@ -28,16 +30,19 @@ interface StartedPlugin {
 export class PluginRuntime implements Disposable {
   readonly #registry: ServiceRegistry;
   readonly #projections: ProjectionRegistry;
+  readonly #tools: ToolRegistry;
   readonly #startedPlugins: readonly StartedPlugin[];
   #disposed = false;
 
   private constructor(
     registry: ServiceRegistry,
     projections: ProjectionRegistry,
+    tools: ToolRegistry,
     startedPlugins: readonly StartedPlugin[],
   ) {
     this.#registry = registry;
     this.#projections = projections;
+    this.#tools = tools;
     this.#startedPlugins = startedPlugins;
   }
 
@@ -45,6 +50,7 @@ export class PluginRuntime implements Disposable {
     const orderedPlugins = orderPlugins(plugins);
     const registry = new ServiceRegistry();
     const projections = new ProjectionRegistry();
+    const tools = new ToolRegistry();
     const startedPlugins: StartedPlugin[] = [];
 
     try {
@@ -59,6 +65,13 @@ export class PluginRuntime implements Disposable {
             projection: ProjectionDefinition<State, View>,
           ): Disposable => {
             const disposable = projections.register(plugin.id, projection);
+            pluginDisposables.push(disposable);
+            return disposable;
+          },
+          registerTool: <Input, Output>(
+            tool: ToolDefinition<Input, Output>,
+          ): Disposable => {
+            const disposable = tools.register(tool);
             pluginDisposables.push(disposable);
             return disposable;
           },
@@ -108,13 +121,14 @@ export class PluginRuntime implements Disposable {
         }
       }
 
-      return new PluginRuntime(registry, projections, startedPlugins);
+      return new PluginRuntime(registry, projections, tools, startedPlugins);
     } catch (error: unknown) {
       try {
         await disposeStartedPlugins(startedPlugins);
       } finally {
         registry.dispose();
         projections.dispose();
+        tools.dispose();
       }
       throw error;
     }
@@ -141,6 +155,16 @@ export class PluginRuntime implements Disposable {
     return this.#projections;
   }
 
+  public getToolRegistry(): ToolRegistry {
+    if (this.#disposed) {
+      throw new RuntimeError(
+        'runtime_disposed',
+        'The plugin runtime is disposed.',
+      );
+    }
+    return this.#tools;
+  }
+
   public async dispose(): Promise<void> {
     if (this.#disposed) {
       return;
@@ -152,6 +176,7 @@ export class PluginRuntime implements Disposable {
     } finally {
       this.#registry.dispose();
       this.#projections.dispose();
+      this.#tools.dispose();
     }
   }
 }
