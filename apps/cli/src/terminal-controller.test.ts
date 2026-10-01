@@ -9,6 +9,7 @@ import {
   type TerminalKey,
   type TerminalState,
 } from './terminal-controller.js';
+import { createFixtureWorkspace } from './terminal-fixtures.js';
 
 describe('terminal controller', () => {
   it('enters, edits, and explicitly confirms a manual claim', () => {
@@ -88,6 +89,26 @@ describe('terminal controller', () => {
     expect(transitionTerminal(state, { kind: 'quit' }).exitRequested).toBe(
       true,
     );
+  });
+
+  it('routes graph content keys to viewport interactions', () => {
+    const graph = createFixtureWorkspace().graph;
+    let state: TerminalState = {
+      ...createTerminalState(),
+      screen: 'workspace',
+      activeTab: 1,
+      focus: 'content',
+    };
+    state = transitionTerminal(state, { kind: 'right' }, graph).state;
+    state = transitionTerminal(state, { kind: 'text', text: 'n' }, graph).state;
+    state = transitionTerminal(state, { kind: 'text', text: 'v' }, graph).state;
+
+    expect(state.graphViewport).toMatchObject({
+      offsetX: 4,
+      selectedElementId: 'source_study',
+      alternative: 'adjacency',
+    });
+    expect(state.scrollOffset).toBe(0);
   });
 });
 

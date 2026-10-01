@@ -2,8 +2,17 @@
  * Renders bounded deterministic terminal frames from client-neutral workspace models.
  */
 
-import type { InvestigationWorkspaceView } from '@sourcezero/presentation';
+import type {
+  InvestigationWorkspaceView,
+  PositionedGraph,
+} from '@sourcezero/presentation';
+import stringWidth from 'string-width';
 
+import {
+  renderCharacterGraph,
+  renderGraphAdjacency,
+  selectedGraphDetail,
+} from './character-graph.js';
 import type { TerminalState, WorkspaceTab } from './terminal-controller.js';
 import { workspaceTabs } from './terminal-controller.js';
 
@@ -26,6 +35,8 @@ export function renderTerminalFrame(
   workspace: InvestigationWorkspaceView,
   dimensions: TerminalDimensions,
   accessibility: TerminalAccessibilityOptions,
+  positionedGraph?: PositionedGraph,
+  graphLayoutError?: string,
 ): string {
   const width = Math.max(minimumColumns, dimensions.columns);
   const height = Math.max(minimumRows, dimensions.rows);
@@ -34,7 +45,15 @@ export function renderTerminalFrame(
     lines.push(...helpLines(accessibility));
   } else if (state.screen === 'workspace') {
     lines.push(
-      ...workspaceLines(state, workspace, width, height, accessibility),
+      ...workspaceLines(
+        state,
+        workspace,
+        width,
+        height,
+        accessibility,
+        positionedGraph,
+        graphLayoutError,
+      ),
     );
   } else {
     lines.push(...framingLines(state, width, accessibility));
@@ -103,6 +122,8 @@ function workspaceLines(
   width: number,
   height: number,
   accessibility: TerminalAccessibilityOptions,
+  positionedGraph?: PositionedGraph,
+  graphLayoutError?: string,
 ): string[] {
   const activeTab = workspaceTabs[state.activeTab] ?? 'Overview';
   const tabLine = accessibility.screenReader
@@ -113,9 +134,20 @@ function workspaceLines(
         )
         .join(' ');
   const focusLine = `Focus: ${state.focus}. Tab changes focus; arrows navigate; ? opens help; Ctrl+C quits.`;
-  const content = sectionLines(activeTab, workspace);
   const reservedRows = 7;
   const availableRows = Math.max(1, height - reservedRows);
+  const leftWidth = Math.floor(width * 0.68);
+  const contentWidth = width < wideLayoutColumns ? width : leftWidth;
+  const content = sectionLines(
+    activeTab,
+    workspace,
+    state,
+    contentWidth,
+    availableRows,
+    accessibility,
+    positionedGraph,
+    graphLayoutError,
+  );
   const offset = Math.min(
     state.scrollOffset,
     Math.max(0, content.length - availableRows),
@@ -134,7 +166,6 @@ function workspaceLines(
     ];
   }
 
-  const leftWidth = Math.floor(width * 0.68);
   const sidebar = [
     'Investigation status',
     `Status: ${workspace.overview.status}`,
@@ -145,7 +176,10 @@ function workspaceLines(
   ];
   const rowCount = Math.max(visible.length, sidebar.length);
   const rows = Array.from({ length: rowCount }, (_, index) => {
-    const left = truncate(visible[index] ?? '', leftWidth).padEnd(leftWidth);
+    const left = padToWidth(
+      truncate(visible[index] ?? '', leftWidth),
+      leftWidth,
+    );
     return `${left} | ${sidebar[index] ?? ''}`;
   });
   return [tabLine, focusLine, '', `${activeTab} view`, ...rows];
@@ -154,6 +188,12 @@ function workspaceLines(
 function sectionLines(
   tab: WorkspaceTab,
   workspace: InvestigationWorkspaceView,
+  state: TerminalState,
+  width: number,
+  height: number,
+  accessibility: TerminalAccessibilityOptions,
+  positionedGraph?: PositionedGraph,
+  graphLayoutError?: string,
 ): string[] {
   switch (tab) {
     case 'Overview':
@@ -165,6 +205,16 @@ function sectionLines(
         `Relationships: ${workspace.overview.relationshipCount.toString()}`,
         `Budget configured: ${workspace.budget.configured ? 'yes' : 'no'}`,
       ];
+    case 'Graph':
+      return graphLines(
+        workspace,
+        state,
+        width,
+        height,
+        accessibility,
+        positionedGraph,
+        graphLayoutError,
+      );
     case 'Timeline':
       return workspace.timeline.entries.length === 0
         ? ['No mutation timeline entries yet.']
@@ -192,6 +242,55 @@ function sectionLines(
   }
 }
 
+function graphLines(
+  workspace: InvestigationWorkspaceView,
+  state: TerminalState,
+  width: number,
+  height: number,
+  accessibility: TerminalAccessibilityOptions,
+  positionedGraph?: PositionedGraph,
+  graphLayoutError?: string,
+): string[] {
+  const viewport = state.graphViewport;
+  const status = `Density: ${viewport.density}; kind: ${viewport.nodeKindFilter}; relationship: ${viewport.relationshipTypeFilter ?? 'all'}; highlight: ${viewport.highlight}`;
+  const capacity =
+    workspace.graph.nodes.length > viewport.maxVisibleNodes
+      ? `Visual node limit: ${viewport.maxVisibleNodes.toString()} of ${workspace.graph.nodes.length.toString()}; adjacency retains all.`
+      : `Visual nodes: ${workspace.graph.nodes.length.toString()}.`;
+  const controls =
+    'N/P select  arrows pan  D density  K/R filters  X duplicates  U/O highlight  V adjacency  C clear';
+  if (accessibility.screenReader || viewport.alternative === 'adjacency') {
+    return [
+      status,
+      capacity,
+      controls,
+      ...renderGraphAdjacency(workspace.graph, viewport),
+      ...selectedGraphDetail(workspace.graph, viewport),
+    ];
+  }
+  if (graphLayoutError !== undefined) {
+    return [
+      status,
+      capacity,
+      controls,
+      `Graph layout failed: ${graphLayoutError}`,
+    ];
+  }
+  if (positionedGraph === undefined) {
+    return [status, capacity, controls, 'Preparing graph layout…'];
+  }
+  return [
+    status,
+    capacity,
+    controls,
+    ...renderCharacterGraph(positionedGraph, viewport, {
+      width,
+      height: Math.max(3, height - 6),
+    }),
+    ...selectedGraphDetail(workspace.graph, viewport),
+  ];
+}
+
 function helpLines(accessibility: TerminalAccessibilityOptions): string[] {
   const prefix = accessibility.screenReader
     ? 'Keyboard help.'
@@ -200,6 +299,7 @@ function helpLines(accessibility: TerminalAccessibilityOptions): string[] {
     prefix,
     'Tab              Move focus between tabs and content',
     'Arrow keys       Select tabs or scroll content',
+    'Graph: N/P select; arrows pan; D/K/R/X/U/O/V/C change graph view',
     'Page Up/Down     Scroll content by five rows',
     'Home/End         First/last tab or content boundary',
     '?                Open or close this help',
@@ -233,18 +333,32 @@ function wrapText(text: string, width: number): string[] {
   }
   const lines: string[] = [];
   let remaining = text;
-  while (remaining.length > width) {
-    const candidate = remaining.slice(0, width + 1);
-    const breakAt = Math.max(candidate.lastIndexOf(' '), width);
-    lines.push(remaining.slice(0, breakAt).trimEnd());
-    remaining = remaining.slice(breakAt).trimStart();
+  while (stringWidth(remaining) > width) {
+    const candidate = sliceByWidth(remaining, width);
+    const space = candidate.lastIndexOf(' ');
+    const line = space > 0 ? candidate.slice(0, space) : candidate;
+    lines.push(line.trimEnd());
+    remaining = remaining.slice(line.length).trimStart();
   }
   lines.push(remaining);
   return lines;
 }
 
 function truncate(value: string, width: number): string {
-  return value.length <= width ? value : value.slice(0, width);
+  return stringWidth(value) <= width ? value : sliceByWidth(value, width);
+}
+
+function sliceByWidth(value: string, width: number): string {
+  let result = '';
+  for (const character of value) {
+    if (stringWidth(`${result}${character}`) > width) break;
+    result += character;
+  }
+  return result;
+}
+
+function padToWidth(value: string, width: number): string {
+  return `${value}${' '.repeat(Math.max(0, width - stringWidth(value)))}`;
 }
 
 function claimText(workspace: InvestigationWorkspaceView): string {

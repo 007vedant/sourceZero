@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`character graph renderer > renders distinct nodes, junctions, arrows, feedback, Unicode, and clipping 1`] = `
+"
+ *════════════╗               ┌───────
+ ║ 主張 claim ║────────┼──────│ Source
+ ╚════════════╝↩───────┼──────└───────
+                       │
+                       │
+                       │
+                       │
+                       │"
+`;

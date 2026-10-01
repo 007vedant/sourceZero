@@ -2,6 +2,11 @@
 
 import { describe, expect, it } from 'vitest';
 
+import type {
+  PositionedGraph,
+  ProvenanceGraphView,
+} from '@sourcezero/presentation';
+
 import {
   createTerminalState,
   type TerminalState,
@@ -28,7 +33,7 @@ describe('terminal frames', () => {
 
   it('switches a narrow terminal to a single-pane evidence view', () => {
     const frame = renderTerminalFrame(
-      { ...workspaceState(), activeTab: 2 },
+      { ...workspaceState(), activeTab: 3 },
       createFixtureWorkspace('running'),
       { columns: 44, rows: 14 },
       accessibility,
@@ -56,16 +61,65 @@ describe('terminal frames', () => {
 
   it('renders explicit empty-state and screen-reader labels without decoration', () => {
     const frame = renderTerminalFrame(
-      { ...workspaceState(), activeTab: 2 },
+      { ...workspaceState(), activeTab: 3 },
       createFixtureWorkspace('draft'),
       { columns: 60, rows: 14 },
       { screenReader: true, reducedDecoration: true },
     );
 
     expect(frame).toContain('SourceZero. Trace every claim back to zero.');
-    expect(frame).toContain('Tabs. Selected Evidence, 3 of 5.');
+    expect(frame).toContain('Tabs. Selected Evidence, 4 of 6.');
     expect(frame).toContain('No evidence has been recorded yet.');
     expect(frame).not.toContain('[Evidence]');
+  });
+
+  it('integrates the visual graph and selected evidence details', () => {
+    const workspace = createFixtureWorkspace('running');
+    const state = {
+      ...workspaceState(),
+      activeTab: 1,
+      focus: 'content' as const,
+      graphViewport: {
+        ...workspaceState().graphViewport,
+        selectedElementId: 'edge_study_report_a',
+      },
+    };
+    const frame = renderTerminalFrame(
+      state,
+      workspace,
+      { columns: 76, rows: 24 },
+      accessibility,
+      positionFixture(workspace.graph),
+    );
+
+    expect(frame).toContain('Graph view');
+    expect(frame).toContain('N/P select');
+    expect(frame).toContain('Original study');
+    expect(frame).toContain('Selected: edge_study_report_a [cites]');
+  });
+
+  it('uses the complete adjacency representation in screen-reader mode', () => {
+    const workspace = createFixtureWorkspace('running');
+    const state = {
+      ...workspaceState(),
+      activeTab: 1,
+      graphViewport: {
+        ...workspaceState().graphViewport,
+        selectedElementId: 'edge_study_report_a',
+      },
+    };
+    const frame = renderTerminalFrame(
+      state,
+      workspace,
+      { columns: 100, rows: 40 },
+      { screenReader: true, reducedDecoration: true },
+    );
+
+    expect(frame).toContain('Tabs. Selected Graph, 2 of 6.');
+    expect(frame).toContain('Nodes');
+    expect(frame).toContain('Relationships');
+    expect(frame).toContain('Original study -[cites]-> Syndicated report A');
+    expect(frame).toContain('Evidence evidence_excerpt');
   });
 });
 
@@ -81,4 +135,35 @@ function expectBounded(frame: string, columns: number, rows: number): void {
   const lines = frame.split('\n');
   expect(lines.length).toBeLessThanOrEqual(rows);
   expect(lines.every((line) => line.length <= columns)).toBe(true);
+}
+
+function positionFixture(graph: ProvenanceGraphView): PositionedGraph {
+  const nodes = graph.nodes.map((node, index) => ({
+    ...node,
+    x: (index % 3) * 23,
+    y: Math.floor(index / 3) * 6,
+    width: 20,
+    height: 3,
+  }));
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  return {
+    width: 66,
+    height: 12,
+    nodes,
+    edges: graph.edges.map((edge) => {
+      const source = nodeById.get(edge.sourceId);
+      const target = nodeById.get(edge.targetId);
+      if (source === undefined || target === undefined) {
+        throw new Error('Fixture edge references an unknown node.');
+      }
+      return {
+        ...edge,
+        feedback: edge.id === 'edge_feedback',
+        points: [
+          { x: source.x + source.width, y: source.y + 1 },
+          { x: target.x, y: target.y + 1 },
+        ],
+      };
+    }),
+  };
 }

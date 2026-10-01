@@ -10,5 +10,8 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
+  },
+  "dependencies": {
+    "elkjs": "0.12.0"
   }
 }

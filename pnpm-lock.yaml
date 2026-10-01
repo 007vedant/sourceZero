@@ -53,6 +53,9 @@ importers:
       react-devtools-core:
         specifier: 6.1.2
         version: 6.1.2
+      string-width:
+        specifier: 8.2.2
+        version: 8.2.2
     devDependencies:
       '@types/react':
         specifier: 19.2.18
@@ -74,7 +77,11 @@ importers:
 
   packages/exports: {}
 
-  packages/presentation: {}
+  packages/presentation:
+    dependencies:
+      elkjs:
+        specifier: 0.12.0
+        version: 0.12.0
 
   packages/providers: {}
 
@@ -985,6 +992,9 @@ packages:
         optional: true
       zod:
         optional: true
+
+  elkjs@0.12.0:
+    resolution: {integrity: sha512-YZcKynxVxYoKIOEpywEPwCFdg+BTbxQRNf3pbwdDCvc8O3kQD8bmIwSxKU1eOTVc4Xo+VG9Te+575mlfvOrhEQ==}
 
   environment@1.1.0:
     resolution: {integrity: sha512-xUtoPkMggbz0MPyPiIWr1Kp4aeWJjDZ6SMvURhimjdZgsRuDplF5/s9hcgGhyXMhs+6vpnuoiZ2kFiu3FMnS8Q==}
@@ -2171,6 +2181,8 @@ snapshots:
   drizzle-orm@1.0.0-rc.4(zod@4.4.3):
     optionalDependencies:
       zod: 4.4.3
+
+  elkjs@0.12.0: {}
 
   environment@1.1.0: {}
 

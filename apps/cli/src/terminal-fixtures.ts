@@ -2,7 +2,10 @@
  * Supplies deterministic framing proposals and investigation views for terminal development.
  */
 
-import type { InvestigationWorkspaceView } from '@sourcezero/presentation';
+import type {
+  InvestigationWorkspaceView,
+  ProvenanceGraphView,
+} from '@sourcezero/presentation';
 
 export const fixtureClaimProposals = [
   'AI assistants reduce completion time for software tasks.',
@@ -14,13 +17,14 @@ export function createFixtureWorkspace(
   status = 'running',
   claim = 'Developers using AI assistants complete tasks 55% faster.',
 ): InvestigationWorkspaceView {
+  const graph = status === 'draft' ? { nodes: [], edges: [] } : fixtureGraph();
   return {
     investigationId: 'inv_fixture_terminal',
     overview: {
       status,
       originalInput: { kind: 'claim', claim },
-      sourceCount: status === 'draft' ? 0 : 6,
-      relationshipCount: status === 'draft' ? 0 : 8,
+      sourceCount: graph.nodes.filter((node) => node.kind === 'source').length,
+      relationshipCount: graph.edges.length,
     },
     progress: {
       status,
@@ -35,7 +39,7 @@ export function createFixtureWorkspace(
         modelTokens: status === 'draft' ? 0 : 4200,
       },
     },
-    graph: { nodes: [], edges: [] },
+    graph,
     timeline: {
       entries:
         status === 'draft'
@@ -101,10 +105,119 @@ export function createFixtureWorkspace(
     },
     availableActions: [
       { type: 'inspect_section', section: 'overview' },
+      { type: 'inspect_section', section: 'graph' },
       { type: 'inspect_section', section: 'timeline' },
       { type: 'inspect_section', section: 'evidence' },
       { type: 'inspect_section', section: 'limitations' },
       { type: 'inspect_section', section: 'trace' },
+    ],
+  };
+}
+
+function fixtureGraph(): ProvenanceGraphView {
+  const evidence = [
+    {
+      id: 'evidence_excerpt',
+      excerpt: 'The fixture records the exact supporting passage.',
+    },
+  ];
+  return {
+    nodes: [
+      {
+        id: 'source_study',
+        kind: 'source',
+        label: 'Original study',
+        detail: { summary: 'First located study in this fixture.', evidence },
+      },
+      {
+        id: 'source_interview',
+        kind: 'source',
+        label: 'Independent interview',
+        detail: { summary: 'A competing independent account.', evidence },
+      },
+      {
+        id: 'source_report_a',
+        kind: 'source',
+        label: 'Syndicated report A',
+        duplicateGroupId: 'duplicate_reports',
+        detail: { summary: 'One member of a duplicate group.', evidence },
+      },
+      {
+        id: 'source_report_b',
+        kind: 'source',
+        label: 'Syndicated report B',
+        duplicateGroupId: 'duplicate_reports',
+        detail: { summary: 'One member of a duplicate group.', evidence },
+      },
+      {
+        id: 'claim_main',
+        kind: 'claim',
+        label: '55% faster claim',
+        detail: { summary: 'The claim under investigation.', evidence },
+      },
+      {
+        id: 'evidence_measurement',
+        kind: 'evidence',
+        label: 'Measured task result',
+        detail: { summary: 'Exact evidence supporting the study.', evidence },
+      },
+    ],
+    edges: [
+      {
+        id: 'edge_study_report_a',
+        sourceId: 'source_study',
+        targetId: 'source_report_a',
+        type: 'cites',
+        detail: { summary: 'Report A cites the study.', evidence },
+      },
+      {
+        id: 'edge_study_report_b',
+        sourceId: 'source_study',
+        targetId: 'source_report_b',
+        type: 'syndicates',
+        detail: { summary: 'Report B repeats the study.', evidence },
+      },
+      {
+        id: 'edge_report_a_claim',
+        sourceId: 'source_report_a',
+        targetId: 'claim_main',
+        type: 'paraphrases',
+        detail: { summary: 'Report A broadens the wording.', evidence },
+      },
+      {
+        id: 'edge_report_b_claim',
+        sourceId: 'source_report_b',
+        targetId: 'claim_main',
+        type: 'copies',
+        detail: { summary: 'Report B repeats the claim.', evidence },
+      },
+      {
+        id: 'edge_interview_claim',
+        sourceId: 'source_interview',
+        targetId: 'claim_main',
+        type: 'independently_supports',
+        detail: {
+          summary: 'The interview independently supports it.',
+          evidence,
+        },
+      },
+      {
+        id: 'edge_evidence_study',
+        sourceId: 'evidence_measurement',
+        targetId: 'source_study',
+        type: 'independently_supports',
+        detail: { summary: 'The measurement supports the study.', evidence },
+      },
+      {
+        id: 'edge_feedback',
+        sourceId: 'claim_main',
+        targetId: 'source_report_a',
+        type: 'unresolved_dependency',
+        detail: {
+          summary: 'Fixture cycle for explicit feedback routing.',
+          evidence,
+        },
+      },
     ],
   };
 }

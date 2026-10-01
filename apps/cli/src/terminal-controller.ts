@@ -3,9 +3,16 @@
  */
 
 import { fixtureClaimProposals } from './terminal-fixtures.js';
+import {
+  createGraphViewportState,
+  transitionGraphViewport,
+  type GraphViewportState,
+} from './graph-controller.js';
+import type { ProvenanceGraphView } from '@sourcezero/presentation';
 
 export const workspaceTabs = [
   'Overview',
+  'Graph',
   'Timeline',
   'Evidence',
   'Limitations',
@@ -51,6 +58,7 @@ export interface TerminalState {
   readonly focus: FocusArea;
   readonly scrollOffset: number;
   readonly helpVisible: boolean;
+  readonly graphViewport: GraphViewportState;
 }
 
 export interface TerminalTransition {
@@ -68,12 +76,14 @@ export function createTerminalState(): TerminalState {
     focus: 'tabs',
     scrollOffset: 0,
     helpVisible: false,
+    graphViewport: createGraphViewportState(),
   };
 }
 
 export function transitionTerminal(
   state: TerminalState,
   key: TerminalKey,
+  graph: ProvenanceGraphView = { nodes: [], edges: [] },
 ): TerminalTransition {
   if (key.kind === 'quit') {
     return { state, exitRequested: true };
@@ -91,13 +101,14 @@ export function transitionTerminal(
     };
   }
 
-  const next = transitionScreen(state, key);
+  const next = transitionScreen(state, key, graph);
   return { state: next, exitRequested: false };
 }
 
 function transitionScreen(
   state: TerminalState,
   key: TerminalKey,
+  graph: ProvenanceGraphView,
 ): TerminalState {
   switch (state.screen) {
     case 'claim_entry':
@@ -109,7 +120,7 @@ function transitionScreen(
     case 'claim_confirmation':
       return transitionClaimConfirmation(state, key);
     case 'workspace':
-      return transitionWorkspace(state, key);
+      return transitionWorkspace(state, key, graph);
   }
 }
 
@@ -226,6 +237,7 @@ function transitionClaimConfirmation(
 function transitionWorkspace(
   state: TerminalState,
   key: TerminalKey,
+  graph: ProvenanceGraphView,
 ): TerminalState {
   if (key.kind === 'tab') {
     return {
@@ -247,6 +259,12 @@ function transitionWorkspace(
       return changeTab(state, workspaceTabs.length - 1);
     }
     return state;
+  }
+  if (workspaceTabs[state.activeTab] === 'Graph') {
+    return {
+      ...state,
+      graphViewport: transitionGraphViewport(state.graphViewport, key, graph),
+    };
   }
   switch (key.kind) {
     case 'up':

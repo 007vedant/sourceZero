@@ -8,7 +8,7 @@ See the [product requirements](docs/product-requirement-doc.md) for the complete
 
 ## Current state
 
-M4 is complete: the CLI now has a fixture-driven interactive terminal workspace with accessible, responsive views plus plain and JSON output. The terminal provenance graph is next; track delivery in [milestones.md](docs/milestones.md).
+M5 is complete: the fixture-driven CLI now includes an interactive, accessible terminal provenance graph alongside plain and JSON output. Investigation providers are not wired yet; the harness tool executor and provider seams are next. Track delivery in [milestones.md](docs/milestones.md).
 
 ## Build
 

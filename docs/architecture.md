@@ -1,7 +1,7 @@
 # SourceZero Architecture
 
 **Status:** Accepted baseline for implementation  
-**Date:** 28 August 2026  
+**Last updated:** 8 September 2026<br>
 **Scope:** Local-first engine, investigator harness, interactive terminal application, and CLI automation surfaces  
 **Product requirements:** [product-requirement-doc.md](product-requirement-doc.md)  
 **Delivery plan:** [milestones.md](milestones.md)
@@ -447,6 +447,10 @@ ProvenanceGraphView
 ```
 
 The renderer owns Unicode cell width, node boxes, edge routing, junction glyphs, clipping, selection, viewport movement, collapsed groups, and semantic density. It supports upstream and descendant highlighting and opens evidence for selected nodes or edges. Cycles are handled explicitly through strongly connected components or feedback-edge routing rather than assuming a DAG.
+
+Positioned graph geometry uses character-cell units and retains the source node and relationship identities unchanged. The initial ELK adapter uses deterministic layered, orthogonal, rightward layout and normalizes the first node to a one-cell visual margin so the initial viewport contains graph content. Edges inside a cycle that travel backward in the selected layout direction are marked as feedback routing metadata; this marker does not change their domain relationship.
+
+The terminal visualizer initially displays at most 250 nodes at once. If a graph exceeds that presentation limit, the UI reports the cap and the adjacency representation retains every node and relationship. Collapsing a duplicate group hides its non-representative visual members and their incident edges; it does not retarget edges or synthesize relationships. Clearing filters or using adjacency view restores access to the complete presentation graph.
 
 ### 14.4 Output modes
 

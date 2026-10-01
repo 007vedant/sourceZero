@@ -44,17 +44,28 @@ export interface BudgetView {
   readonly usage: Readonly<Record<string, number>>;
 }
 
+export interface GraphElementDetailView {
+  readonly summary: string;
+  readonly evidence: readonly {
+    readonly id: string;
+    readonly excerpt: string;
+  }[];
+}
+
 export interface ProvenanceGraphView {
   readonly nodes: readonly {
     readonly id: string;
     readonly kind: 'claim' | 'source' | 'evidence';
     readonly label: string;
+    readonly duplicateGroupId?: string;
+    readonly detail?: GraphElementDetailView;
   }[];
   readonly edges: readonly {
     readonly id: string;
     readonly sourceId: string;
     readonly targetId: string;
     readonly type: string;
+    readonly detail?: GraphElementDetailView;
   }[];
 }
 

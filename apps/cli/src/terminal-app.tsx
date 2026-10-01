@@ -2,8 +2,13 @@
  * Adapts Ink input, resize, and accessibility hooks to the pure terminal workspace model.
  */
 
+import {
+  ElkGraphLayoutAdapter,
+  type PositionedGraph,
+} from '@sourcezero/presentation';
 import { Text, useApp, useInput, useWindowSize, type Key } from 'ink';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import stringWidth from 'string-width';
 
 import {
   createTerminalState,
@@ -22,12 +27,16 @@ export interface TerminalAppProperties extends TerminalAccessibilityOptions {
   readonly fixtureStatus?: string | undefined;
 }
 
+const graphLayout = new ElkGraphLayoutAdapter();
+
 export function TerminalApp(properties: TerminalAppProperties) {
   const { exit } = useApp();
   const dimensions = useWindowSize();
   const [state, setState] = useState<TerminalState>(
     properties.initialState ?? createTerminalState(),
   );
+  const [positionedGraph, setPositionedGraph] = useState<PositionedGraph>();
+  const [graphLayoutError, setGraphLayoutError] = useState<string>();
   const workspace = useMemo(
     () =>
       createFixtureWorkspace(
@@ -37,12 +46,38 @@ export function TerminalApp(properties: TerminalAppProperties) {
     [properties.fixtureStatus, state.confirmedClaim],
   );
 
+  useEffect(() => {
+    const controller = new AbortController();
+    setPositionedGraph(undefined);
+    setGraphLayoutError(undefined);
+    void graphLayout
+      .layout(
+        workspace.graph,
+        {
+          direction: 'right',
+          nodeHeight: 3,
+          measureNodeWidth: (node) =>
+            Math.max(12, Math.min(34, stringWidth(node.label) + 4)),
+        },
+        controller.signal,
+      )
+      .then(setPositionedGraph)
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) {
+          setGraphLayoutError(
+            error instanceof Error ? error.message : 'Graph layout failed.',
+          );
+        }
+      });
+    return () => controller.abort();
+  }, [workspace]);
+
   useInput((input, key) => {
     const normalized = normalizeInkInput(input, key, state.screen);
     if (normalized === undefined) {
       return;
     }
-    const transition = transitionTerminal(state, normalized);
+    const transition = transitionTerminal(state, normalized, workspace.graph);
     if (transition.exitRequested) {
       exit();
       return;
@@ -50,7 +85,14 @@ export function TerminalApp(properties: TerminalAppProperties) {
     setState(transition.state);
   });
 
-  const frame = renderTerminalFrame(state, workspace, dimensions, properties);
+  const frame = renderTerminalFrame(
+    state,
+    workspace,
+    dimensions,
+    properties,
+    positionedGraph,
+    graphLayoutError,
+  );
   return properties.reducedDecoration ? (
     <Text>{frame}</Text>
   ) : (

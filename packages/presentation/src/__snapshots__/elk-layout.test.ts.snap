@@ -1,0 +1,522 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ElkGraphLayoutAdapter > positions the crossing fixture deterministically 1`] = `
+{
+  "edges": [
+    {
+      "feedback": false,
+      "id": "edge_0",
+      "points": [
+        {
+          "x": 13,
+          "y": 3,
+        },
+        {
+          "x": 19,
+          "y": 3,
+        },
+      ],
+    },
+    {
+      "feedback": false,
+      "id": "edge_1",
+      "points": [
+        {
+          "x": 13,
+          "y": 26,
+        },
+        {
+          "x": 19,
+          "y": 26,
+        },
+      ],
+    },
+  ],
+  "height": 28,
+  "nodes": [
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "left_a",
+      "kind": "claim",
+      "width": 12,
+      "x": 1,
+      "y": 1,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "left_b",
+      "kind": "source",
+      "width": 12,
+      "x": 1,
+      "y": 24,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "right_a",
+      "kind": "evidence",
+      "width": 12,
+      "x": 19,
+      "y": 24,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "right_b",
+      "kind": "claim",
+      "width": 12,
+      "x": 19,
+      "y": 1,
+    },
+  ],
+  "width": 32,
+}
+`;
+
+exports[`ElkGraphLayoutAdapter > positions the cycle fixture deterministically 1`] = `
+{
+  "edges": [
+    {
+      "feedback": false,
+      "id": "edge_0",
+      "points": [
+        {
+          "x": 13,
+          "y": 3,
+        },
+        {
+          "x": 33,
+          "y": 3,
+        },
+      ],
+    },
+    {
+      "feedback": false,
+      "id": "edge_1",
+      "points": [
+        {
+          "x": 45,
+          "y": 3,
+        },
+        {
+          "x": 65,
+          "y": 3,
+        },
+      ],
+    },
+    {
+      "feedback": true,
+      "id": "edge_2",
+      "points": [
+        {
+          "x": 65,
+          "y": 4,
+        },
+        {
+          "x": 55,
+          "y": 4,
+        },
+        {
+          "x": 55,
+          "y": 14,
+        },
+        {
+          "x": 23,
+          "y": 14,
+        },
+        {
+          "x": 23,
+          "y": 4,
+        },
+        {
+          "x": 13,
+          "y": 4,
+        },
+      ],
+    },
+  ],
+  "height": 6,
+  "nodes": [
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "a",
+      "kind": "claim",
+      "width": 12,
+      "x": 1,
+      "y": 2,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "b",
+      "kind": "source",
+      "width": 12,
+      "x": 33,
+      "y": 1,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "c",
+      "kind": "evidence",
+      "width": 12,
+      "x": 65,
+      "y": 2,
+    },
+  ],
+  "width": 78,
+}
+`;
+
+exports[`ElkGraphLayoutAdapter > positions the diamond fixture deterministically 1`] = `
+{
+  "edges": [
+    {
+      "feedback": false,
+      "id": "edge_0",
+      "points": [
+        {
+          "x": 13,
+          "y": 3,
+        },
+        {
+          "x": 33,
+          "y": 3,
+        },
+      ],
+    },
+    {
+      "feedback": false,
+      "id": "edge_1",
+      "points": [
+        {
+          "x": 13,
+          "y": 4,
+        },
+        {
+          "x": 23,
+          "y": 4,
+        },
+        {
+          "x": 23,
+          "y": 9,
+        },
+        {
+          "x": 33,
+          "y": 9,
+        },
+      ],
+    },
+    {
+      "feedback": false,
+      "id": "edge_2",
+      "points": [
+        {
+          "x": 45,
+          "y": 3,
+        },
+        {
+          "x": 65,
+          "y": 3,
+        },
+      ],
+    },
+    {
+      "feedback": false,
+      "id": "edge_3",
+      "points": [
+        {
+          "x": 45,
+          "y": 9,
+        },
+        {
+          "x": 55,
+          "y": 9,
+        },
+        {
+          "x": 55,
+          "y": 4,
+        },
+        {
+          "x": 65,
+          "y": 4,
+        },
+      ],
+    },
+  ],
+  "height": 11,
+  "nodes": [
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "origin",
+      "kind": "claim",
+      "width": 12,
+      "x": 1,
+      "y": 2,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "branch_a",
+      "kind": "source",
+      "width": 12,
+      "x": 33,
+      "y": 1,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "branch_b",
+      "kind": "evidence",
+      "width": 12,
+      "x": 33,
+      "y": 7,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "claim",
+      "kind": "claim",
+      "width": 12,
+      "x": 65,
+      "y": 2,
+    },
+  ],
+  "width": 78,
+}
+`;
+
+exports[`ElkGraphLayoutAdapter > positions the duplicates fixture deterministically 1`] = `
+{
+  "edges": [
+    {
+      "feedback": false,
+      "id": "edge_0",
+      "points": [
+        {
+          "x": 13,
+          "y": 3,
+        },
+        {
+          "x": 33,
+          "y": 3,
+        },
+      ],
+    },
+    {
+      "feedback": false,
+      "id": "edge_1",
+      "points": [
+        {
+          "x": 13,
+          "y": 4,
+        },
+        {
+          "x": 23,
+          "y": 4,
+        },
+        {
+          "x": 23,
+          "y": 9,
+        },
+        {
+          "x": 33,
+          "y": 9,
+        },
+      ],
+    },
+  ],
+  "height": 11,
+  "nodes": [
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "origin",
+      "kind": "claim",
+      "width": 12,
+      "x": 1,
+      "y": 2,
+    },
+    {
+      "duplicateGroupId": "copies",
+      "height": 3,
+      "id": "copy_a",
+      "kind": "source",
+      "width": 12,
+      "x": 33,
+      "y": 1,
+    },
+    {
+      "duplicateGroupId": "copies",
+      "height": 3,
+      "id": "copy_b",
+      "kind": "evidence",
+      "width": 12,
+      "x": 33,
+      "y": 7,
+    },
+  ],
+  "width": 46,
+}
+`;
+
+exports[`ElkGraphLayoutAdapter > positions the empty fixture deterministically 1`] = `
+{
+  "edges": [],
+  "height": 1,
+  "nodes": [],
+  "width": 1,
+}
+`;
+
+exports[`ElkGraphLayoutAdapter > positions the multiple origins fixture deterministically 1`] = `
+{
+  "edges": [
+    {
+      "feedback": false,
+      "id": "edge_0",
+      "points": [
+        {
+          "x": 13,
+          "y": 3,
+        },
+        {
+          "x": 33,
+          "y": 3,
+        },
+      ],
+    },
+    {
+      "feedback": false,
+      "id": "edge_1",
+      "points": [
+        {
+          "x": 13,
+          "y": 9,
+        },
+        {
+          "x": 23,
+          "y": 9,
+        },
+        {
+          "x": 23,
+          "y": 4,
+        },
+        {
+          "x": 33,
+          "y": 4,
+        },
+      ],
+    },
+  ],
+  "height": 11,
+  "nodes": [
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "origin_a",
+      "kind": "claim",
+      "width": 12,
+      "x": 1,
+      "y": 1,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "origin_b",
+      "kind": "source",
+      "width": 12,
+      "x": 1,
+      "y": 7,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "claim",
+      "kind": "evidence",
+      "width": 12,
+      "x": 33,
+      "y": 2,
+    },
+  ],
+  "width": 46,
+}
+`;
+
+exports[`ElkGraphLayoutAdapter > positions the tree fixture deterministically 1`] = `
+{
+  "edges": [
+    {
+      "feedback": false,
+      "id": "edge_0",
+      "points": [
+        {
+          "x": 13,
+          "y": 3,
+        },
+        {
+          "x": 33,
+          "y": 3,
+        },
+      ],
+    },
+    {
+      "feedback": false,
+      "id": "edge_1",
+      "points": [
+        {
+          "x": 13,
+          "y": 4,
+        },
+        {
+          "x": 23,
+          "y": 4,
+        },
+        {
+          "x": 23,
+          "y": 9,
+        },
+        {
+          "x": 33,
+          "y": 9,
+        },
+      ],
+    },
+  ],
+  "height": 11,
+  "nodes": [
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "root",
+      "kind": "claim",
+      "width": 12,
+      "x": 1,
+      "y": 2,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "left",
+      "kind": "source",
+      "width": 12,
+      "x": 33,
+      "y": 1,
+    },
+    {
+      "duplicateGroupId": null,
+      "height": 3,
+      "id": "right",
+      "kind": "evidence",
+      "width": 12,
+      "x": 33,
+      "y": 7,
+    },
+  ],
+  "width": 46,
+}
+`;

@@ -1,8 +1,8 @@
 # SourceZero Milestones
 
-**Last updated:** 29 August 2026  
-**Current milestone:** M5 — Terminal provenance graph  
-**Progress:** 5 of 13 milestones complete
+**Last updated:** 8 September 2026<br>
+**Current milestone:** M6 — Harness tool executor and provider seams<br>
+**Progress:** 6 of 13 milestones complete
 
 ## How to use this file
 
@@ -23,8 +23,8 @@
 | M2        | Durable events and local persistence                    | Complete |
 | M3        | Projections and application services                    | Complete |
 | M4        | Interactive terminal workspace                          | Complete |
-| M5        | Terminal provenance graph                               | Next     |
-| M6        | Harness tool executor and provider seams                | Pending  |
+| M5        | Terminal provenance graph                               | Complete |
+| M6        | Harness tool executor and provider seams                | Next     |
 | M7        | Claim framing and investigation lifecycle               | Pending  |
 | M8        | Source discovery, retrieval, and extraction             | Pending  |
 | M9        | Evidence graph and provenance analysis                  | Pending  |
@@ -187,7 +187,8 @@ The CLI opens a responsive interactive TUI driven by fixture and replayed invest
 
 ## M5 — Terminal provenance graph
 
-**Status:** Next  
+**Status:** Complete<br>
+**Completed:** 8 September 2026<br>
 **Depends on:** M4
 
 ### Outcome
@@ -196,28 +197,33 @@ Users can explore a live provenance graph inside the terminal with evidence-equi
 
 ### Deliverables
 
-- [ ] Define the positioned-graph and graph-viewport contracts.
-- [ ] Add an `elkjs` layout adapter behind the SourceZero layout interface.
-- [ ] Implement character-cell node, label, edge, junction, arrow, and clipping rendering.
-- [ ] Handle Unicode display width and terminal resizing.
-- [ ] Implement selection, panning, semantic density, filters, upstream/descendant highlighting, and duplicate collapse.
-- [ ] Implement node/edge evidence details and an adjacency-list alternative.
-- [ ] Define explicit cycle and feedback-edge behavior.
+- [x] Define the positioned-graph and graph-viewport contracts.
+- [x] Add an `elkjs` layout adapter behind the SourceZero layout interface.
+- [x] Implement character-cell node, label, edge, junction, arrow, and clipping rendering.
+- [x] Handle Unicode display width and terminal resizing.
+- [x] Implement selection, panning, semantic density, filters, upstream/descendant highlighting, and duplicate collapse.
+- [x] Implement node/edge evidence details and an adjacency-list alternative.
+- [x] Define explicit cycle and feedback-edge behavior.
 
 ### Completion gates
 
-- [ ] Deterministic snapshots cover trees, diamonds, duplicates, multiple origins, cycles, crossings, clipping, and empty graphs.
-- [ ] Graph interaction remains responsive at the configured MVP visible-node limit.
-- [ ] All material graph facts are available through the evidence table or adjacency view.
-- [ ] Graph rendering contains no domain decisions or relationship inference.
+- [x] Deterministic snapshots cover trees, diamonds, duplicates, multiple origins, cycles, crossings, clipping, and empty graphs.
+- [x] Graph interaction remains responsive at the configured MVP visible-node limit.
+- [x] All material graph facts are available through the evidence table or adjacency view.
+- [x] Graph rendering contains no domain decisions or relationship inference.
 
 ### Verification evidence
 
-- Not completed.
+- `corepack pnpm verify` — strict TypeScript check, ESLint, Prettier check, Drizzle migration validation, and 80 Vitest tests passed.
+- `corepack pnpm build` — all workspace projects built successfully.
+- Deterministic layout and character-cell snapshots cover empty, tree, diamond, duplicate, multiple-origin, cycle, crossing, Unicode, junction, feedback-edge, and clipping cases.
+- Performance tests laid out and rendered the 250-node visual limit within their two-second and 250-millisecond bounds respectively.
+- Fixed-dimension frame and controller tests verified graph selection, panning, density, filters, duplicate collapse, upstream and descendant highlighting, resizing, selected evidence details, and complete screen-reader adjacency output.
+- A built pseudo-TTY smoke test verified initial graph visibility, keyboard selection, complete adjacency access, and alternate-screen restoration; built JSON output remained parseable and free of decorative output.
 
 ## M6 — Harness tool executor and provider seams
 
-**Status:** Pending  
+**Status:** Next<br>
 **Depends on:** M2, M3
 
 ### Outcome
