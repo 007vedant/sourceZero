@@ -4,6 +4,7 @@
 
 import type {
   BudgetView,
+  FramingView,
   LimitationsView,
   ProgressView,
   ProvenanceGraphView,
@@ -12,9 +13,12 @@ import type {
 import { z } from 'zod';
 
 import {
+  claimProposalSchema,
+  framingFailureCodeSchema,
   investigationPolicySchema,
   investigationStatusSchema,
   originalInputSchema,
+  pageDerivedContextSchema,
   type BudgetDelta,
   type InvestigationStatus,
   type OriginalInput,
@@ -54,6 +58,13 @@ export const lifecycleProjection: ProjectionDefinition<
       case 'investigation.status_changed':
         return { ...state, status: event.data.to };
       case 'investigation.policy_resolved':
+      case 'investigation.branched':
+      case 'claim.proposals_recorded':
+      case 'claim.edited':
+      case 'claim.confirmed':
+      case 'claim.reframed':
+      case 'framing.page_context_recorded':
+      case 'framing.failed':
       case 'tool.requested':
       case 'tool.started':
       case 'tool.retry_scheduled':
@@ -90,6 +101,13 @@ export const progressProjection: ProjectionDefinition<
       case 'investigation.status_changed':
         return { status: event.data.to };
       case 'investigation.policy_resolved':
+      case 'investigation.branched':
+      case 'claim.proposals_recorded':
+      case 'claim.edited':
+      case 'claim.confirmed':
+      case 'claim.reframed':
+      case 'framing.page_context_recorded':
+      case 'framing.failed':
       case 'tool.requested':
       case 'tool.started':
       case 'tool.retry_scheduled':
@@ -145,6 +163,13 @@ export const budgetProjection: ProjectionDefinition<BudgetState, BudgetView> = {
         return { ...state, policy: event.data.policy };
       case 'investigation.created':
       case 'investigation.status_changed':
+      case 'investigation.branched':
+      case 'claim.proposals_recorded':
+      case 'claim.edited':
+      case 'claim.confirmed':
+      case 'claim.reframed':
+      case 'framing.page_context_recorded':
+      case 'framing.failed':
       case 'tool.requested':
       case 'tool.started':
       case 'tool.retry_scheduled':
@@ -165,6 +190,116 @@ export const budgetProjection: ProjectionDefinition<BudgetState, BudgetView> = {
       usage: state.usage,
     };
   },
+};
+
+const framingStateSchema = z
+  .object({
+    proposals: z.array(claimProposalSchema),
+    workingClaim: claimProposalSchema.optional(),
+    confirmedClaim: claimProposalSchema.optional(),
+    pageContext: pageDerivedContextSchema.optional(),
+    failure: z
+      .object({
+        code: framingFailureCodeSchema,
+        stage: z.enum(['fetch', 'extraction', 'proposal']),
+        message: z.string(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+type FramingState = z.infer<typeof framingStateSchema>;
+
+export const framingProjection: ProjectionDefinition<
+  FramingState,
+  FramingView
+> = {
+  id: 'sourcezero.framing',
+  version: 1,
+  stateSchema: framingStateSchema,
+  init: () => ({ proposals: [] }),
+  apply(state, event) {
+    switch (event.type) {
+      case 'claim.proposals_recorded': {
+        return {
+          proposals: [...event.data.proposals],
+          workingClaim: event.data.proposals[0],
+          ...(state.pageContext === undefined
+            ? {}
+            : { pageContext: state.pageContext }),
+        };
+      }
+      case 'claim.edited':
+      case 'claim.reframed': {
+        return {
+          proposals: [...state.proposals, event.data.proposal],
+          workingClaim: event.data.proposal,
+          ...(state.pageContext === undefined
+            ? {}
+            : { pageContext: state.pageContext }),
+        };
+      }
+      case 'claim.confirmed':
+        return {
+          ...state,
+          confirmedClaim: {
+            claimId: event.data.claimId,
+            wording: event.data.wording,
+            origin: state.workingClaim?.origin ?? 'user_edit',
+          },
+        };
+      case 'framing.page_context_recorded':
+        return { ...state, pageContext: event.data.context };
+      case 'framing.failed':
+        return { ...state, failure: event.data };
+      case 'investigation.created':
+      case 'investigation.policy_resolved':
+      case 'investigation.status_changed':
+      case 'investigation.branched':
+      case 'tool.requested':
+      case 'tool.started':
+      case 'tool.retry_scheduled':
+      case 'tool.succeeded':
+      case 'tool.failed':
+      case 'budget.consumed':
+        return state;
+    }
+  },
+  view: (state) => ({
+    proposals: state.proposals,
+    ...(state.workingClaim === undefined
+      ? {}
+      : {
+          workingClaim: {
+            claimId: state.workingClaim.claimId,
+            wording: state.workingClaim.wording,
+          },
+        }),
+    ...(state.confirmedClaim === undefined
+      ? {}
+      : {
+          confirmedClaim: {
+            claimId: state.confirmedClaim.claimId,
+            wording: state.confirmedClaim.wording,
+          },
+        }),
+    ...(state.pageContext === undefined
+      ? {}
+      : {
+          pageContext: {
+            requestedUrl: state.pageContext.requestedUrl,
+            resolvedUrl: state.pageContext.resolvedUrl,
+            ...(state.pageContext.title === undefined
+              ? {}
+              : { title: state.pageContext.title }),
+            fetchedArtifactId: state.pageContext.fetchedArtifactId,
+            readableTextArtifactId: state.pageContext.readableTextArtifactId,
+            readableCharacterCount: state.pageContext.readableCharacterCount,
+          },
+        }),
+    ...(state.failure === undefined ? {} : { failure: state.failure }),
+  }),
 };
 
 const traceEntrySchema = z
@@ -257,6 +392,7 @@ export const graphProjection: ProjectionDefinition<
 
 export const foundationalProjections = [
   lifecycleProjection,
+  framingProjection,
   progressProjection,
   budgetProjection,
   traceProjection,
@@ -269,6 +405,7 @@ export const foundationalProjectionsPlugin: Plugin = {
   id: 'sourcezero.foundational-projections',
   setup(context) {
     context.registerProjection(lifecycleProjection);
+    context.registerProjection(framingProjection);
     context.registerProjection(progressProjection);
     context.registerProjection(budgetProjection);
     context.registerProjection(traceProjection);

@@ -1,8 +1,8 @@
 # SourceZero Milestones
 
-**Last updated:** 1 October 2026<br>
-**Current milestone:** M7 — Claim framing and investigation lifecycle<br>
-**Progress:** 7 of 13 milestones complete
+**Last updated:** 3 October 2026<br>
+**Current milestone:** M8 — Source discovery, retrieval, and extraction<br>
+**Progress:** 8 of 13 milestones complete
 
 ## How to use this file
 
@@ -25,8 +25,8 @@
 | M4        | Interactive terminal workspace                          | Complete |
 | M5        | Terminal provenance graph                               | Complete |
 | M6        | Harness tool executor and provider seams                | Complete |
-| M7        | Claim framing and investigation lifecycle               | Next     |
-| M8        | Source discovery, retrieval, and extraction             | Pending  |
+| M7        | Claim framing and investigation lifecycle               | Complete |
+| M8        | Source discovery, retrieval, and extraction             | Next     |
 | M9        | Evidence graph and provenance analysis                  | Pending  |
 | M10       | Origin, independence, and mutation findings             | Pending  |
 | M11       | Product-complete TUI, replay, cancellation, and exports | Pending  |
@@ -258,7 +258,8 @@ The harness can invoke validated, cancellable, budgeted tools through explicit m
 
 ## M7 — Claim framing and investigation lifecycle
 
-**Status:** Next<br>
+**Status:** Complete<br>
+**Completed:** 3 October 2026<br>
 **Depends on:** M4, M6
 
 ### Outcome
@@ -267,27 +268,30 @@ A user can create an investigation from a claim or URL, confirm one precise clai
 
 ### Deliverables
 
-- [ ] Implement manual claim input, normalization proposal, editing, and explicit confirmation.
-- [ ] Implement URL input, initial retrieval, and up to five proposed claims.
-- [ ] Preserve original input and page-derived context.
-- [ ] Implement durable lifecycle transitions and legal-action checks.
-- [ ] Require restart or branch for reframing after substantive work.
-- [ ] Display framing feedback and structured failures in TUI, plain, and JSON modes.
+- [x] Implement manual claim input, normalization proposal, editing, and explicit confirmation.
+- [x] Implement URL input, initial retrieval, and up to five proposed claims.
+- [x] Preserve original input and page-derived context.
+- [x] Implement durable lifecycle transitions and legal-action checks.
+- [x] Require restart or branch for reframing after substantive work.
+- [x] Display framing feedback and structured failures in TUI, plain, and JSON modes.
 
 ### Completion gates
 
-- [ ] No investigation work beyond framing begins before confirmation.
-- [ ] Confirmation and later changes are additive durable events.
-- [ ] Claim and URL happy paths and failure paths pass end-to-end fixture tests.
-- [ ] The normal framing target meets the PRD latency target under fixture providers.
+- [x] No investigation work beyond framing begins before confirmation.
+- [x] Confirmation and later changes are additive durable events.
+- [x] Claim and URL happy paths and failure paths pass end-to-end fixture tests.
+- [x] The normal framing target meets the PRD latency target under fixture providers.
 
 ### Verification evidence
 
-- Not completed.
+- `corepack pnpm verify` — strict TypeScript check, ESLint, Prettier check, Drizzle migration validation, and 116 Vitest tests passed.
+- `corepack pnpm build` — all workspace projects built successfully.
+- Temporary SQLite and artifact fixture tests verified manual normalization, URL fetch/extraction context, up to five proposals, malformed-model failure recording, explicit confirmation, and sub-second fixture framing.
+- Application and CLI tests verified additive proposal/edit/confirmation/restart/branch events, legal-action rejection after substantive work, durable local composition, explicit non-interactive confirmation, TUI action wiring, ANSI-free plain output, and parseable JSON output.
 
 ## M8 — Source discovery, retrieval, and extraction
 
-**Status:** Pending  
+**Status:** Next<br>
 **Depends on:** M6, M7
 
 ### Outcome

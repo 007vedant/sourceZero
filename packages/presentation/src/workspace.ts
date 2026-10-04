@@ -12,8 +12,14 @@ export type WorkspaceSection =
   | 'trace';
 
 export interface InvestigationAction {
-  readonly type: 'inspect_section';
-  readonly section: WorkspaceSection;
+  readonly type:
+    | 'inspect_section'
+    | 'edit_claim'
+    | 'confirm_claim'
+    | 'start_run'
+    | 'restart_framing'
+    | 'branch_investigation';
+  readonly section?: WorkspaceSection;
 }
 
 export type OriginalInputView =
@@ -36,6 +42,35 @@ export interface ProgressView<Status extends string = string> {
   readonly status: Status;
   readonly stage:
     'framing' | 'ready' | 'investigating' | 'finished' | 'stopped';
+}
+
+export interface FramingView {
+  readonly proposals: readonly {
+    readonly claimId: string;
+    readonly wording: string;
+    readonly origin: 'manual_normalization' | 'page_extraction' | 'user_edit';
+  }[];
+  readonly workingClaim?: {
+    readonly claimId: string;
+    readonly wording: string;
+  };
+  readonly confirmedClaim?: {
+    readonly claimId: string;
+    readonly wording: string;
+  };
+  readonly pageContext?: {
+    readonly requestedUrl: string;
+    readonly resolvedUrl: string;
+    readonly title?: string;
+    readonly fetchedArtifactId: string;
+    readonly readableTextArtifactId: string;
+    readonly readableCharacterCount: number;
+  };
+  readonly failure?: {
+    readonly code: string;
+    readonly stage: 'fetch' | 'extraction' | 'proposal';
+    readonly message: string;
+  };
 }
 
 export interface BudgetView {
@@ -110,6 +145,7 @@ export interface InvestigationWorkspaceView<
   readonly investigationId: InvestigationIdentifier;
   readonly overview: OverviewView<Status>;
   readonly progress: ProgressView<Status>;
+  readonly framing: FramingView;
   readonly budget: BudgetView;
   readonly graph: ProvenanceGraphView;
   readonly timeline: MutationTimelineView;

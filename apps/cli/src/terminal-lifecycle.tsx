@@ -56,6 +56,8 @@ export async function runInteractiveTerminal(
         reducedDecoration={options.reducedDecoration}
         initialState={options.initialState}
         fixtureStatus={options.fixtureStatus}
+        initialWorkspace={options.initialWorkspace}
+        framingActions={options.framingActions}
       />,
       {
         stdin: options.streams.stdin,

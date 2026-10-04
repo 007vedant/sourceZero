@@ -75,12 +75,17 @@ function framingLines(
   width: number,
   accessibility: TerminalAccessibilityOptions,
 ): string[] {
+  const feedback = [
+    ...(state.busy ? ['Working…'] : []),
+    ...(state.framingFeedback === undefined ? [] : [state.framingFeedback]),
+  ];
   switch (state.screen) {
     case 'claim_entry':
       return [
         'Claim entry',
         'Enter one claim or a public HTTP/HTTPS URL:',
         ...wrapText(state.input.length === 0 ? '(empty)' : state.input, width),
+        ...feedback,
         '',
         'Enter continue  ? help  Ctrl+C quit',
       ];
@@ -94,6 +99,7 @@ function framingLines(
             width,
           ),
         ),
+        ...feedback,
         '',
         'Up/Down select  Enter continue  E edit  Esc back',
       ];
@@ -101,6 +107,7 @@ function framingLines(
       return [
         'Claim editing',
         ...wrapText(state.input.length === 0 ? '(empty)' : state.input, width),
+        ...feedback,
         '',
         'Type to edit  Backspace delete  Enter continue  Esc back',
       ];
@@ -108,6 +115,7 @@ function framingLines(
       return [
         'Confirm investigation claim',
         ...wrapText(`Investigate: “${state.input}”`, width),
+        ...feedback,
         '',
         'Y confirm  E edit  Esc restart',
       ];
@@ -201,6 +209,12 @@ function sectionLines(
         `Claim: ${claimText(workspace)}`,
         `Status: ${workspace.overview.status}`,
         `Stage: ${workspace.progress.stage}`,
+        ...(workspace.framing.failure === undefined
+          ? []
+          : [
+              `Framing failure: ${workspace.framing.failure.code} (${workspace.framing.failure.stage})`,
+              workspace.framing.failure.message,
+            ]),
         `Sources: ${workspace.overview.sourceCount.toString()}`,
         `Relationships: ${workspace.overview.relationshipCount.toString()}`,
         `Budget configured: ${workspace.budget.configured ? 'yes' : 'no'}`,

@@ -73,6 +73,30 @@ describe('terminal frames', () => {
     expect(frame).not.toContain('[Evidence]');
   });
 
+  it('renders structured framing failures in the workspace overview', () => {
+    const base = createFixtureWorkspace('failed');
+    const workspace = {
+      ...base,
+      framing: {
+        ...base.framing,
+        failure: {
+          code: 'fetch_failed',
+          stage: 'fetch' as const,
+          message: 'The input page could not be retrieved.',
+        },
+      },
+    };
+    const frame = renderTerminalFrame(
+      workspaceState(),
+      workspace,
+      { columns: 72, rows: 18 },
+      accessibility,
+    );
+
+    expect(frame).toContain('Framing failure: fetch_failed (fetch)');
+    expect(frame).toContain('The input page could not be retrieved.');
+  });
+
   it('integrates the visual graph and selected evidence details', () => {
     const workspace = createFixtureWorkspace('running');
     const state = {

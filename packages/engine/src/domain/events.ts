@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 import {
+  artifactIdSchema,
+  claimIdSchema,
   eventIdSchema,
   investigationIdSchema,
   toolCallIdSchema,
@@ -85,6 +87,41 @@ export const originalInputSchema = z.discriminatedUnion('kind', [
 
 export type OriginalInput = z.infer<typeof originalInputSchema>;
 
+export const claimProposalSchema = z
+  .object({
+    claimId: claimIdSchema,
+    wording: z.string().trim().min(1).max(10_000),
+    origin: z.enum(['manual_normalization', 'page_extraction', 'user_edit']),
+  })
+  .strict();
+
+export type ClaimProposal = z.infer<typeof claimProposalSchema>;
+
+export const pageDerivedContextSchema = z
+  .object({
+    requestedUrl: z.url(),
+    resolvedUrl: z.url(),
+    title: z.string().max(2_000).optional(),
+    fetchedArtifactId: artifactIdSchema,
+    readableTextArtifactId: artifactIdSchema,
+    readableCharacterCount: z.number().int().nonnegative().max(5_000_000),
+  })
+  .strict();
+
+export type PageDerivedContext = z.infer<typeof pageDerivedContextSchema>;
+
+export const framingFailureCodeSchema = z.enum([
+  'fetch_failed',
+  'extraction_failed',
+  'model_failed',
+  'model_refused',
+  'invalid_model_output',
+  'budget_exhausted',
+  'canceled',
+]);
+
+export type FramingFailureCode = z.infer<typeof framingFailureCodeSchema>;
+
 export const budgetDeltaSchema = z
   .object({
     searchRequests: z.number().int().nonnegative().optional(),
@@ -148,6 +185,84 @@ const investigationStatusChangedEventSchema = envelopeSchema
         from: investigationStatusSchema,
         to: investigationStatusSchema,
         reason: z.string().min(1).max(2_000).optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
+const investigationBranchedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('investigation.branched'),
+    data: z
+      .object({
+        parentInvestigationId: investigationIdSchema,
+        parentSequence: z.number().int().positive(),
+      })
+      .strict(),
+  })
+  .strict();
+
+const claimProposalsRecordedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('claim.proposals_recorded'),
+    data: z
+      .object({ proposals: z.array(claimProposalSchema).min(1).max(5) })
+      .strict(),
+  })
+  .strict();
+
+const claimEditedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('claim.edited'),
+    data: z
+      .object({
+        proposal: claimProposalSchema,
+        replacesClaimId: claimIdSchema.optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
+const claimConfirmedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('claim.confirmed'),
+    data: z
+      .object({
+        claimId: claimIdSchema,
+        wording: z.string().trim().min(1).max(10_000),
+      })
+      .strict(),
+  })
+  .strict();
+
+const claimReframedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('claim.reframed'),
+    data: z
+      .object({
+        mode: z.literal('restart'),
+        proposal: claimProposalSchema,
+        replacesClaimId: claimIdSchema,
+      })
+      .strict(),
+  })
+  .strict();
+
+const framingPageContextRecordedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('framing.page_context_recorded'),
+    data: z.object({ context: pageDerivedContextSchema }).strict(),
+  })
+  .strict();
+
+const framingFailedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('framing.failed'),
+    data: z
+      .object({
+        code: framingFailureCodeSchema,
+        stage: z.enum(['fetch', 'extraction', 'proposal']),
+        message: z.string().min(1).max(2_000),
       })
       .strict(),
   })
@@ -244,6 +359,13 @@ export const investigationEventSchema = z.discriminatedUnion('type', [
   investigationCreatedEventSchema,
   investigationPolicyResolvedEventSchema,
   investigationStatusChangedEventSchema,
+  investigationBranchedEventSchema,
+  claimProposalsRecordedEventSchema,
+  claimEditedEventSchema,
+  claimConfirmedEventSchema,
+  claimReframedEventSchema,
+  framingPageContextRecordedEventSchema,
+  framingFailedEventSchema,
   toolRequestedEventSchema,
   toolStartedEventSchema,
   toolRetryScheduledEventSchema,

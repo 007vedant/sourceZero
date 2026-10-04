@@ -1,7 +1,7 @@
 # SourceZero Architecture
 
 **Status:** Accepted baseline for implementation  
-**Last updated:** 1 October 2026<br>
+**Last updated:** 3 October 2026<br>
 **Scope:** Local-first engine, investigator harness, interactive terminal application, and CLI automation surfaces  
 **Product requirements:** [product-requirement-doc.md](product-requirement-doc.md)  
 **Delivery plan:** [milestones.md](milestones.md)
@@ -357,6 +357,12 @@ At each iteration the harness:
 
 The stopping policy considers promising leads, recent discovery yield, evidence coverage, unresolved material classifications, required output readiness, budgets, and cancellation. An unconstrained model decision cannot be the only stopping condition.
 
+### 11.1 Claim framing
+
+Claim framing is an application-owned orchestration over the harness executor. Manual input requests one normalized, checkable proposal from the selected model. URL input runs fetch and readable-text extraction first, records the resolved URL and immutable artifact references, then requests at most five proposals. Retrieved text is explicitly delimited as untrusted data, and model proposals use a strict function-shaped response with validated JSON fallback.
+
+Framing may call only model, fetch, and extraction capabilities. It cannot schedule discovery or graph mutation. Proposals move an investigation from `draft` to `awaiting_confirmation`; only a durable `claim.confirmed` event may advance through `ready` to `running`. Edits and confirmations refer to durable claim IDs. Once substantive work has begun, ordinary editing is rejected and the user must choose an additive restart event or a new investigation branch linked to its parent sequence.
+
 ## 12. Tool execution
 
 The harness's tool-execution subsystem exposes validated canonical JSON values:
@@ -504,6 +510,8 @@ Application-layer URL validation does not replace operating-system or container 
 Configuration is validated once at boot and resolved into an immutable investigation policy recorded when an investigation is created. Environment-specific defaults are owned by the component that defines them.
 
 The local CLI may read a documented configuration file and environment variables. Secret values are resolved by providers at execution time through credential references. Configuration dumps, events, logs, artifacts, prompts, and exports must redact secret values.
+
+The initial local CLI stores its SQLite database and content-addressed artifacts under `~/.sourcezero`. The global `--data-dir` option provides an explicit override for tests, isolated workspaces, and portable local runs. This filesystem choice belongs to CLI composition and does not leak into engine contracts.
 
 ## 18. Testing and evaluation
 

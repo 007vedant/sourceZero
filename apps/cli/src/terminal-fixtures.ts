@@ -30,6 +30,24 @@ export function createFixtureWorkspace(
       status,
       stage: stageForStatus(status),
     },
+    framing: {
+      proposals: [
+        {
+          claimId: 'clm_fixture_terminal',
+          wording: claim,
+          origin: 'manual_normalization',
+        },
+      ],
+      workingClaim: { claimId: 'clm_fixture_terminal', wording: claim },
+      ...(status === 'draft' || status === 'awaiting_confirmation'
+        ? {}
+        : {
+            confirmedClaim: {
+              claimId: 'clm_fixture_terminal',
+              wording: claim,
+            },
+          }),
+    },
     budget: {
       configured: true,
       limits: { searchRequests: 12, retrievedSources: 20, modelTokens: 20_000 },

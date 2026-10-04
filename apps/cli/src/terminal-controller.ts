@@ -1,5 +1,5 @@
 /**
- * Defines deterministic terminal navigation and fixture claim-framing transitions.
+ * Defines deterministic terminal navigation and claim-framing transitions.
  */
 
 import { fixtureClaimProposals } from './terminal-fixtures.js';
@@ -58,6 +58,8 @@ export interface TerminalState {
   readonly focus: FocusArea;
   readonly scrollOffset: number;
   readonly helpVisible: boolean;
+  readonly busy: boolean;
+  readonly framingFeedback?: string;
   readonly graphViewport: GraphViewportState;
 }
 
@@ -76,6 +78,7 @@ export function createTerminalState(): TerminalState {
     focus: 'tabs',
     scrollOffset: 0,
     helpVisible: false,
+    busy: false,
     graphViewport: createGraphViewportState(),
   };
 }
