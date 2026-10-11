@@ -142,6 +142,13 @@ export class ClaimFramingService {
       );
     }
     const fetched = fetchResponseSchema.parse(fetch.output);
+    if (fetched.outcome === 'rejected') {
+      throw new FramingOperationError(
+        'fetch_failed',
+        'fetch',
+        `The input page could not be retrieved: ${fetched.message}`,
+      );
+    }
     const extraction = await this.#executor.execute({
       investigationId,
       toolName: 'provider.extraction.readable_text',
@@ -149,6 +156,7 @@ export class ClaimFramingService {
         operationId: operationId(investigationId, 'extract'),
         artifactId: fetched.artifactId,
         mediaType: fetched.mediaType,
+        documentUrl: fetched.resolvedUrl,
       },
       signal,
     });

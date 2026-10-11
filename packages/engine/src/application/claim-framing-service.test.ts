@@ -196,12 +196,13 @@ async function createFixture(modelText: string) {
     execute: () => {
       calls.push('provider.fetch.public_url');
       return Promise.resolve({
+        outcome: 'retrieved' as const,
         resolvedUrl: 'https://example.test/final',
         status: 200,
         mediaType: 'text/html',
         artifactId: raw.id,
         byteLength: raw.byteLength,
-        redirects: ['https://example.test/final'],
+        redirects: [],
       });
     },
   });
@@ -220,7 +221,10 @@ async function createFixture(modelText: string) {
         readableCharacterCount: readableText.length,
         language: 'en',
         links: [],
+        namedSources: [],
+        exactPhrases: [],
         metadata: {},
+        extractionMethod: 'static' as const,
       });
     },
   });

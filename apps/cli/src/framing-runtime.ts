@@ -13,19 +13,23 @@ import {
   PluginRuntime,
   SqliteStore,
   ToolExecutor,
+  SourceDiscoveryService,
   createExtractionProviderTool,
   createFetchProviderTool,
   createModelProviderTool,
+  createSearchProviderTool,
   extractionProviderRegistryKey,
   fetchProviderRegistryKey,
   foundationalProjectionsPlugin,
   modelProviderRegistryKey,
+  searchProviderRegistryKey,
   providerRegistriesPlugin,
   type InvestigationPolicy,
   type SourceZeroConfig,
 } from '@sourcezero/engine';
 import {
   createOpenAIModelProviderPlugin,
+  createWebProvidersPlugin,
   OPENAI_MODEL_PROVIDER_ID,
 } from '@sourcezero/providers';
 
@@ -41,6 +45,7 @@ export const defaultInvestigationPolicy: InvestigationPolicy = {
 };
 
 export interface LocalFramingRuntime {
+  readonly discovery: SourceDiscoveryService;
   readonly framing: ClaimFramingService;
   readonly investigations: InvestigationApplicationService;
   readonly modelId: string;
@@ -70,10 +75,21 @@ export async function openLocalFramingRuntime(
   });
   let runtime: PluginRuntime | undefined;
   try {
+    const artifacts = new LocalArtifactStore({
+      rootDirectory: join(root, 'artifacts'),
+      metadata: store,
+      maxArtifactBytes: 15_000_000,
+    });
     runtime = await PluginRuntime.boot([
       providerRegistriesPlugin,
       foundationalProjectionsPlugin,
       createOpenAIModelProviderPlugin(),
+      createWebProvidersPlugin({
+        artifacts,
+        ...(process.env.SOURCEZERO_CHROMIUM_PATH === undefined
+          ? {}
+          : { chromiumExecutablePath: process.env.SOURCEZERO_CHROMIUM_PATH }),
+      }),
     ]);
     const toolRegistry = runtime.getToolRegistry();
     const retryPolicy = {
@@ -84,6 +100,15 @@ export async function openLocalFramingRuntime(
     toolRegistry.register(
       createModelProviderTool(runtime.getService(modelProviderRegistryKey), {
         providerId: model.providerId,
+        timeoutMs: defaultInvestigationPolicy.perToolTimeoutMs,
+        retryPolicy,
+      }),
+    );
+    toolRegistry.register(
+      createSearchProviderTool(runtime.getService(searchProviderRegistryKey), {
+        ...(config.providers.search === undefined
+          ? {}
+          : { providerId: config.providers.search.providerId }),
         timeoutMs: defaultInvestigationPolicy.perToolTimeoutMs,
         retryPolicy,
       }),
@@ -131,14 +156,14 @@ export async function openLocalFramingRuntime(
         graphNodes: defaultInvestigationPolicy.maxGraphNodes,
       }),
     });
-    const artifacts = new LocalArtifactStore({
-      rootDirectory: join(root, 'artifacts'),
-      metadata: store,
-      maxArtifactBytes: 15_000_000,
-    });
     const activeRuntime = runtime;
     return {
       framing: new ClaimFramingService({ investigations, executor, artifacts }),
+      discovery: new SourceDiscoveryService({
+        investigations,
+        executor,
+        recorder,
+      }),
       investigations,
       modelId: model.modelId,
       policy: defaultInvestigationPolicy,

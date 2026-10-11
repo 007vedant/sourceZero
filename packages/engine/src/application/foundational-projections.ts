@@ -71,6 +71,12 @@ export const lifecycleProjection: ProjectionDefinition<
       case 'tool.succeeded':
       case 'tool.failed':
       case 'budget.consumed':
+      case 'discovery.query_recorded':
+      case 'discovery.query_failed':
+      case 'discovery.lead_recorded':
+      case 'source.retrieved':
+      case 'source.rejected':
+      case 'discovery.lead_unfollowed':
         return state;
     }
   },
@@ -114,6 +120,12 @@ export const progressProjection: ProjectionDefinition<
       case 'tool.succeeded':
       case 'tool.failed':
       case 'budget.consumed':
+      case 'discovery.query_recorded':
+      case 'discovery.query_failed':
+      case 'discovery.lead_recorded':
+      case 'source.retrieved':
+      case 'source.rejected':
+      case 'discovery.lead_unfollowed':
         return state;
     }
   },
@@ -175,6 +187,12 @@ export const budgetProjection: ProjectionDefinition<BudgetState, BudgetView> = {
       case 'tool.retry_scheduled':
       case 'tool.succeeded':
       case 'tool.failed':
+      case 'discovery.query_recorded':
+      case 'discovery.query_failed':
+      case 'discovery.lead_recorded':
+      case 'source.retrieved':
+      case 'source.rejected':
+      case 'discovery.lead_unfollowed':
         return state;
       case 'budget.consumed':
         return {
@@ -263,6 +281,12 @@ export const framingProjection: ProjectionDefinition<
       case 'tool.succeeded':
       case 'tool.failed':
       case 'budget.consumed':
+      case 'discovery.query_recorded':
+      case 'discovery.query_failed':
+      case 'discovery.lead_recorded':
+      case 'source.retrieved':
+      case 'source.rejected':
+      case 'discovery.lead_unfollowed':
         return state;
     }
   },
@@ -337,7 +361,19 @@ export const traceProjection: ProjectionDefinition<TraceState, TraceView> = {
   view: (state) => state,
 };
 
-const limitationsStateSchema = z.object({ items: z.array(z.never()) }).strict();
+const limitationsStateSchema = z
+  .object({
+    items: z.array(
+      z
+        .object({
+          id: z.string(),
+          kind: z.string(),
+          message: z.string(),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
 type LimitationsState = z.infer<typeof limitationsStateSchema>;
 
 export const limitationsProjection: ProjectionDefinition<
@@ -348,12 +384,50 @@ export const limitationsProjection: ProjectionDefinition<
   version: 1,
   stateSchema: limitationsStateSchema,
   init: () => ({ items: [] }),
-  apply: (state) => state,
+  apply(state, event) {
+    switch (event.type) {
+      case 'discovery.query_failed':
+        return {
+          items: [
+            ...state.items,
+            {
+              id: event.eventId,
+              kind: event.data.code,
+              message: event.data.message,
+            },
+          ],
+        };
+      case 'source.rejected':
+        return {
+          items: [
+            ...state.items,
+            {
+              id: event.eventId,
+              kind: event.data.code,
+              message: event.data.message,
+            },
+          ],
+        };
+      case 'discovery.lead_unfollowed':
+        return {
+          items: [
+            ...state.items,
+            {
+              id: event.eventId,
+              kind: event.data.reason,
+              message: event.data.message,
+            },
+          ],
+        };
+      default:
+        return state;
+    }
+  },
   view: (state) => state,
 };
 
 const sourceCatalogStateSchema = z
-  .object({ sources: z.array(z.never()) })
+  .object({ sources: z.array(z.string()) })
   .strict();
 type SourceCatalogState = z.infer<typeof sourceCatalogStateSchema>;
 
@@ -369,7 +443,10 @@ export const sourceCatalogProjection: ProjectionDefinition<
   version: 1,
   stateSchema: sourceCatalogStateSchema,
   init: () => ({ sources: [] }),
-  apply: (state) => state,
+  apply: (state, event) =>
+    event.type === 'source.retrieved'
+      ? { sources: [...state.sources, event.data.sourceId] }
+      : state,
   view: (state) => ({ sourceCount: state.sources.length }),
 };
 

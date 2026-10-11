@@ -166,6 +166,12 @@ function fixtureDependencies(): Parameters<typeof runCli>[2] {
         framing: {
           begin: () => Promise.resolve(awaiting),
         },
+        discovery: {
+          run: () =>
+            Promise.resolve(
+              createFixtureWorkspace('running', 'A normalized claim.'),
+            ),
+        },
         investigations: {
           confirmClaim: () =>
             createFixtureWorkspace('running', 'A normalized claim.'),

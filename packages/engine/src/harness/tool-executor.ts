@@ -10,6 +10,7 @@ import { z } from 'zod';
 import type { BudgetDelta, ToolFailureCode } from '../domain/events.js';
 import {
   createToolCallId,
+  type EventId,
   type InvestigationId,
   type ToolCallId,
 } from '../domain/identifiers.js';
@@ -58,6 +59,7 @@ export interface ExecuteToolRequest {
   readonly toolName: string;
   readonly input: unknown;
   readonly signal: AbortSignal;
+  readonly causationId?: EventId;
 }
 
 export interface ToolExecutorOptions {
@@ -153,6 +155,9 @@ export class ToolExecutor {
         {
           type: 'tool.requested',
           producer: { kind: 'system', component: 'harness.tool-executor' },
+          ...(request.causationId === undefined
+            ? {}
+            : { causationId: request.causationId }),
           data: {
             toolCallId,
             toolName: tool.name,

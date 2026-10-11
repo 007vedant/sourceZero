@@ -8,7 +8,7 @@ See the [product requirements](docs/product-requirement-doc.md) for the complete
 
 ## Current state
 
-M7 is complete: claim input can be normalized through the configured model, reviewed, edited, explicitly confirmed, and started as a durable bounded run. URL framing is wired through fetch and extraction provider seams and deterministic fixtures; the hardened real web retriever arrives in M8. Track delivery in [milestones.md](docs/milestones.md).
+M8 is complete: a confirmed claim can discover, safely retrieve, extract, and traverse public webpage sources into replayable local artifacts and events. Track delivery in [milestones.md](docs/milestones.md).
 
 ## Build
 
@@ -42,20 +42,23 @@ The no-argument command still opens the deterministic demo workspace. To run liv
     "model": {
       "providerId": "openai.responses",
       "modelId": "YOUR_MODEL_ID"
-    }
+    },
+    "search": { "providerId": "brave.web" },
+    "fetch": { "providerId": "sourcezero.http" },
+    "extraction": { "providerId": "sourcezero.html" }
   }
 }
 ```
 
-Then provide `OPENAI_API_KEY` only at execution time:
+Then provide provider credentials only at execution time:
 
 ```sh
-OPENAI_API_KEY=... node apps/cli/dist/bin.js \
+OPENAI_API_KEY=... BRAVE_SEARCH_API_KEY=... node apps/cli/dist/bin.js \
   --config sourcezero.config.json \
-  investigate "A precise claim to investigate"
+  --json investigate --confirm "A precise claim to investigate"
 ```
 
-In a TTY, SourceZero displays the durable proposal for editing and explicit confirmation. Redirected output defaults to plain text; add `--json` for machine-readable output or `--confirm` to explicitly confirm the first proposal non-interactively. Local investigation data is stored under `~/.sourcezero` by default; use `--data-dir <path>` to override it. See the [milestone plan](docs/milestones.md) for the remaining investigation capabilities.
+In a TTY, SourceZero displays the durable proposal for editing and explicit confirmation, then runs bounded source discovery. Redirected output defaults to plain text; add `--json` for machine-readable output or `--confirm` to confirm the first proposal non-interactively. Set `SOURCEZERO_CHROMIUM_PATH` to a local Chromium executable only when browser fallback is wanted. Local investigation data is stored under `~/.sourcezero` by default; use `--data-dir <path>` to override it. See the [milestone plan](docs/milestones.md) for the remaining investigation capabilities.
 
 ## Contributing
 

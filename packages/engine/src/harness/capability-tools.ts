@@ -95,7 +95,8 @@ export function createFetchProviderTool(
     retryPolicy: options.retryPolicy,
     budget: {
       estimate: () => ({ retrievedSources: 1 }),
-      measure: () => ({ retrievedSources: 1 }),
+      measure: (_request, response) =>
+        response.outcome === 'retrieved' ? { retrievedSources: 1 } : {},
     },
     execute: (request, context) =>
       registry

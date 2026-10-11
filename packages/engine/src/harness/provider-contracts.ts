@@ -129,16 +129,56 @@ export const fetchRequestSchema = z
   .object({ operationId: identifierSchema, url: httpUrlSchema })
   .strict();
 
-export const fetchResponseSchema = z
-  .object({
-    resolvedUrl: httpUrlSchema,
-    status: z.number().int().min(100).max(599),
-    mediaType: z.string().min(1).max(200),
-    artifactId: artifactIdSchema,
-    byteLength: z.number().int().nonnegative().max(15_000_000),
-    redirects: z.array(httpUrlSchema).max(20),
-  })
-  .strict();
+export const fetchResponseSchema = z.discriminatedUnion('outcome', [
+  z
+    .object({
+      outcome: z.literal('retrieved'),
+      resolvedUrl: httpUrlSchema,
+      status: z.number().int().min(200).max(299),
+      mediaType: z.string().min(1).max(200),
+      artifactId: artifactIdSchema,
+      byteLength: z.number().int().nonnegative().max(15_000_000),
+      redirects: z
+        .array(
+          z
+            .object({
+              from: httpUrlSchema,
+              to: httpUrlSchema,
+              status: z.number().int().min(300).max(399),
+            })
+            .strict(),
+        )
+        .max(20),
+    })
+    .strict(),
+  z
+    .object({
+      outcome: z.literal('rejected'),
+      code: z.enum([
+        'blocked_destination',
+        'invalid_redirect',
+        'redirect_limit',
+        'http_status',
+        'unsupported_content_type',
+        'response_too_large',
+      ]),
+      message: z.string().min(1).max(2_000),
+      resolvedUrl: httpUrlSchema,
+      status: z.number().int().min(100).max(599).optional(),
+      redirects: z
+        .array(
+          z
+            .object({
+              from: httpUrlSchema,
+              to: httpUrlSchema,
+              status: z.number().int().min(300).max(399),
+            })
+            .strict(),
+        )
+        .max(20),
+    })
+    .strict(),
+]);
 
 export type FetchRequest = z.infer<typeof fetchRequestSchema>;
 export type FetchResponse = z.infer<typeof fetchResponseSchema>;
@@ -153,6 +193,7 @@ export const extractionRequestSchema = z
     operationId: identifierSchema,
     artifactId: artifactIdSchema,
     mediaType: z.string().min(1).max(200),
+    documentUrl: httpUrlSchema,
   })
   .strict();
 
@@ -162,8 +203,22 @@ export const extractionResponseSchema = z
     readableTextArtifactId: artifactIdSchema,
     readableCharacterCount: z.number().int().nonnegative().max(5_000_000),
     language: z.string().min(1).max(50).optional(),
-    links: z.array(httpUrlSchema).max(10_000),
+    links: z
+      .array(
+        z
+          .object({
+            url: httpUrlSchema,
+            text: z.string().max(2_000),
+            kind: z.enum(['hyperlink', 'citation']),
+          })
+          .strict(),
+      )
+      .max(10_000),
+    namedSources: z.array(z.string().min(1).max(2_000)).max(1_000),
+    exactPhrases: z.array(z.string().min(1).max(500)).max(1_000),
     metadata: z.record(z.string(), z.string().max(10_000)),
+    extractionMethod: z.enum(['static', 'browser']),
+    renderedArtifactId: artifactIdSchema.optional(),
   })
   .strict();
 

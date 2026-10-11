@@ -1,8 +1,8 @@
 # SourceZero Milestones
 
-**Last updated:** 3 October 2026<br>
-**Current milestone:** M8 — Source discovery, retrieval, and extraction<br>
-**Progress:** 8 of 13 milestones complete
+**Last updated:** 11 October 2026<br>
+**Current milestone:** M9 — Evidence graph and provenance analysis<br>
+**Progress:** 9 of 13 milestones complete
 
 ## How to use this file
 
@@ -26,8 +26,8 @@
 | M5        | Terminal provenance graph                               | Complete |
 | M6        | Harness tool executor and provider seams                | Complete |
 | M7        | Claim framing and investigation lifecycle               | Complete |
-| M8        | Source discovery, retrieval, and extraction             | Next     |
-| M9        | Evidence graph and provenance analysis                  | Pending  |
+| M8        | Source discovery, retrieval, and extraction             | Complete |
+| M9        | Evidence graph and provenance analysis                  | Next     |
 | M10       | Origin, independence, and mutation findings             | Pending  |
 | M11       | Product-complete TUI, replay, cancellation, and exports | Pending  |
 | M12       | Evaluation suite and demo readiness                     | Pending  |
@@ -291,7 +291,8 @@ A user can create an investigation from a claim or URL, confirm one precise clai
 
 ## M8 — Source discovery, retrieval, and extraction
 
-**Status:** Next<br>
+**Status:** Complete<br>
+**Completed:** 11 October 2026<br>
 **Depends on:** M6, M7
 
 ### Outcome
@@ -300,27 +301,31 @@ The investigator can discover, safely retrieve, parse, and traverse relevant pub
 
 ### Deliverables
 
-- [ ] Implement the first real search provider and source-discovery tool.
-- [ ] Implement SSRF-resistant bounded HTTP retrieval and redirect inspection.
-- [ ] Implement readable-text, metadata, citation, hyperlink, named-source, and exact-phrase lead extraction.
-- [ ] Add bounded browser fallback only where static retrieval is inadequate.
-- [ ] Normalize candidate URLs while preserving redirect and discovery history.
-- [ ] Record failed, blocked, duplicate, and budget-unfollowed leads as limitations.
+- [x] Implement the first real search provider and source-discovery tool.
+- [x] Implement SSRF-resistant bounded HTTP retrieval and redirect inspection.
+- [x] Implement readable-text, metadata, citation, hyperlink, named-source, and exact-phrase lead extraction.
+- [x] Add bounded browser fallback only where static retrieval is inadequate.
+- [x] Normalize candidate URLs while preserving redirect and discovery history.
+- [x] Record failed, blocked, duplicate, and budget-unfollowed leads as limitations.
 
 ### Completion gates
 
-- [ ] SSRF, redirect, protocol, DNS/address, timeout, byte, character, and content-type tests pass.
-- [ ] Every query and followed lead is causally traceable.
-- [ ] Retrieval artifacts and evidence locations survive replay.
-- [ ] Search, source, traversal-depth, retry, time, and cost budgets are enforced.
+- [x] SSRF, redirect, protocol, DNS/address, timeout, byte, character, and content-type tests pass.
+- [x] Every query and followed lead is causally traceable.
+- [x] Retrieval artifacts and evidence locations survive replay.
+- [x] Search, source, traversal-depth, retry, time, and cost budgets are enforced.
 
 ### Verification evidence
 
-- Not completed.
+- `corepack pnpm verify` — strict TypeScript check, ESLint, Prettier check, Drizzle migration validation, and 137 Vitest tests passed.
+- `corepack pnpm build` — all workspace projects built successfully.
+- Network-policy and concrete-provider tests covered protocol and credential rejection, private, loopback, link-local, multicast, reserved, mixed-DNS, and metadata-address denial; per-hop redirect inspection; redirect, byte, decoded-character, content-type, and cancellation bounds; static lead extraction; browser-fallback selection; and execution-time Brave credentials.
+- Temporary SQLite and artifact integration tests verified normalized breadth-first traversal, causal query/lead/tool/source chains, duplicate/source/depth limitations, source and search budgets, immutable raw and readable artifacts after reopening, and projection-only replay without external calls.
+- Existing executor tests continued to verify deterministic timeout, retry, wall-clock, cancellation, model-token, and call-budget enforcement; every paid search is bounded by the durable search-request policy.
 
 ## M9 — Evidence graph and provenance analysis
 
-**Status:** Pending  
+**Status:** Next<br>
 **Depends on:** M8
 
 ### Outcome

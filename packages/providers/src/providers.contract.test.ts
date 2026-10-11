@@ -82,6 +82,7 @@ const fetchRequest: FetchRequest = {
   url: 'https://example.com/source',
 };
 const fetchResponse: FetchResponse = {
+  outcome: 'retrieved',
   resolvedUrl: 'https://example.com/source',
   status: 200,
   mediaType: 'text/html',
@@ -93,13 +94,17 @@ const extractionRequest: ExtractionRequest = {
   operationId: 'extract-operation-1',
   artifactId: artifactIdFromHexDigest('a'.repeat(64)),
   mediaType: 'text/html',
+  documentUrl: 'https://example.com/source',
 };
 const extractionResponse: ExtractionResponse = {
   title: 'Fixture',
   readableTextArtifactId: artifactIdFromHexDigest('c'.repeat(64)),
   readableCharacterCount: 5,
   links: [],
+  namedSources: [],
+  exactPhrases: [],
   metadata: {},
+  extractionMethod: 'static',
 };
 
 describe('fixture and replay provider contracts', () => {

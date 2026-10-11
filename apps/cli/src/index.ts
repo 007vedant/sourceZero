@@ -186,6 +186,10 @@ export async function runCli(
             workspace.investigationId,
             working,
           );
+          workspace = await runtime.discovery.run(
+            workspace.investigationId,
+            new AbortController().signal,
+          );
         }
         if (
           globalOptions.plain !== true &&
@@ -210,11 +214,16 @@ export async function runCli(
                     wording,
                   },
                 ),
-              confirm: (current, claimId, wording) =>
-                runtime.investigations.confirmClaim(
+              confirm: async (current, claimId, wording) => {
+                const confirmed = runtime.investigations.confirmClaim(
                   investigationIdSchema.parse(current.investigationId),
                   { claimId, wording },
-                ),
+                );
+                return runtime.discovery.run(
+                  confirmed.investigationId,
+                  new AbortController().signal,
+                );
+              },
             },
           });
         } else {

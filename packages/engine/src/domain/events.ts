@@ -5,6 +5,7 @@ import {
   claimIdSchema,
   eventIdSchema,
   investigationIdSchema,
+  sourceIdSchema,
   toolCallIdSchema,
   type InvestigationId,
 } from './identifiers.js';
@@ -355,6 +356,138 @@ const budgetConsumedEventSchema = envelopeSchema
   })
   .strict();
 
+const redirectHopSchema = z
+  .object({
+    from: z.url(),
+    to: z.url(),
+    status: z.number().int().min(300).max(399),
+  })
+  .strict();
+
+const discoveryQueryRecordedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('discovery.query_recorded'),
+    data: z
+      .object({
+        query: z.string().trim().min(1).max(2_000),
+        reason: z.enum(['confirmed_claim', 'named_source', 'exact_phrase']),
+        depth: z.number().int().nonnegative(),
+        parentSourceId: sourceIdSchema.optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
+const discoveryLeadRecordedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('discovery.lead_recorded'),
+    data: z
+      .object({
+        originalUrl: z.url(),
+        normalizedUrl: z.url(),
+        title: z.string().max(2_000),
+        snippet: z.string().max(10_000),
+        kind: z.enum(['search_result', 'hyperlink', 'citation']),
+        depth: z.number().int().nonnegative(),
+        parentSourceId: sourceIdSchema.optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
+const discoveryQueryFailedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('discovery.query_failed'),
+    data: z
+      .object({
+        query: z.string().trim().min(1).max(2_000),
+        code: z.enum([
+          'provider_failure',
+          'timeout',
+          'canceled',
+          'invalid_output',
+          'budget_exhausted',
+        ]),
+        message: z.string().min(1).max(2_000),
+      })
+      .strict(),
+  })
+  .strict();
+
+const sourceRetrievedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('source.retrieved'),
+    data: z
+      .object({
+        sourceId: sourceIdSchema,
+        originalUrl: z.url(),
+        normalizedUrl: z.url(),
+        resolvedUrl: z.url(),
+        depth: z.number().int().nonnegative(),
+        status: z.number().int().min(200).max(299),
+        mediaType: z.string().min(1).max(200),
+        fetchedArtifactId: artifactIdSchema,
+        readableTextArtifactId: artifactIdSchema,
+        renderedArtifactId: artifactIdSchema.optional(),
+        readableCharacterCount: z.number().int().nonnegative().max(5_000_000),
+        title: z.string().max(2_000).optional(),
+        redirects: z.array(redirectHopSchema).max(20),
+        extractionMethod: z.enum(['static', 'browser']),
+        links: z
+          .array(
+            z
+              .object({
+                url: z.url(),
+                text: z.string().max(2_000),
+                kind: z.enum(['hyperlink', 'citation']),
+              })
+              .strict(),
+          )
+          .max(10_000),
+        namedSources: z.array(z.string().min(1).max(2_000)).max(1_000),
+        exactPhrases: z.array(z.string().min(1).max(500)).max(1_000),
+        metadata: z.record(z.string(), z.string().max(10_000)),
+      })
+      .strict(),
+  })
+  .strict();
+
+const sourceRejectedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('source.rejected'),
+    data: z
+      .object({
+        originalUrl: z.url(),
+        normalizedUrl: z.url(),
+        depth: z.number().int().nonnegative(),
+        code: z.string().min(1).max(100),
+        message: z.string().min(1).max(2_000),
+        redirects: z.array(redirectHopSchema).max(20),
+      })
+      .strict(),
+  })
+  .strict();
+
+const discoveryLeadUnfollowedEventSchema = envelopeSchema
+  .extend({
+    type: z.literal('discovery.lead_unfollowed'),
+    data: z
+      .object({
+        originalUrl: z.url(),
+        normalizedUrl: z.url(),
+        depth: z.number().int().nonnegative(),
+        reason: z.enum([
+          'duplicate',
+          'source_budget',
+          'depth_budget',
+          'failed',
+        ]),
+        message: z.string().min(1).max(2_000),
+      })
+      .strict(),
+  })
+  .strict();
+
 export const investigationEventSchema = z.discriminatedUnion('type', [
   investigationCreatedEventSchema,
   investigationPolicyResolvedEventSchema,
@@ -372,6 +505,12 @@ export const investigationEventSchema = z.discriminatedUnion('type', [
   toolSucceededEventSchema,
   toolFailedEventSchema,
   budgetConsumedEventSchema,
+  discoveryQueryRecordedEventSchema,
+  discoveryQueryFailedEventSchema,
+  discoveryLeadRecordedEventSchema,
+  sourceRetrievedEventSchema,
+  sourceRejectedEventSchema,
+  discoveryLeadUnfollowedEventSchema,
 ]);
 
 type DeepReadonly<Value> = Value extends
